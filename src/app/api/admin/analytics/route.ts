@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const eventType = searchParams.get('eventType');
     const userId = searchParams.get('userId');
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 500);
     const offset = parseInt(searchParams.get('offset') ?? '0');
 
@@ -36,12 +36,12 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(analyticsEvents.userId, userId));
     }
 
-    if (startDate) {
-      conditions.push(gte(analyticsEvents.createdAt, startDate));
+    if (startDateParam) {
+      conditions.push(gte(analyticsEvents.createdAt, new Date(startDateParam)));
     }
 
-    if (endDate) {
-      conditions.push(lte(analyticsEvents.createdAt, endDate));
+    if (endDateParam) {
+      conditions.push(lte(analyticsEvents.createdAt, new Date(endDateParam)));
     }
 
     // Build WHERE clause

@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       ipAddress: ipAddress || null,
       userAgent: userAgent || null,
       referrer: referrer || null,
-      createdAt: new Date().toISOString()
+      createdAt: new Date()
     };
 
     // Insert to Turso

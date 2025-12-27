@@ -36,8 +36,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const now = new Date().toISOString();
-
     // Insert feedback
     const [feedback] = await db.insert(feedbackSubmissions).values({
       userId: session?.user?.id,
@@ -45,8 +43,7 @@ export async function POST(request: NextRequest) {
       subject: name,
       category: type,
       message,
-      status: 'new',
-      createdAt: now
+      status: 'new'
     }).returning();
 
     return NextResponse.json(
