@@ -22,7 +22,7 @@ export const authClient = createAuthClient({
 
 type SessionData = ReturnType<typeof authClient.useSession>
 
-export function useSession(): SessionData {
+export function useSession(): any {
    const [session, setSession] = useState<any>(null);
    const [isPending, setIsPending] = useState(true);
    const [isRefetching, setIsRefetching] = useState(false);
@@ -37,7 +37,7 @@ export function useSession(): SessionData {
 
    const fetchSession = async () => {
       try {
-         const res = await authClient.getSession({
+         const res = await (authClient as any).getSession({
             fetchOptions: {
                auth: {
                   type: "Bearer",
@@ -59,5 +59,5 @@ export function useSession(): SessionData {
       fetchSession();
    }, []);
 
-   return { data: session, isPending, error, refetch } as any;
+   return { data: session, isPending, isRefetching, error, refetch };
 }
