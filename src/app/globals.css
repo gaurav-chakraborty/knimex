@@ -213,7 +213,7 @@
   }
 }
 
-/* Hide Next.js error overlay portal */
+/* Hide Next.js error overlay portal
 nextjs-portal {
   display: none !important;
-}
+} */
