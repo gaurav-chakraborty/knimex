@@ -25,12 +25,14 @@ type SessionData = ReturnType<typeof authClient.useSession>
 export function useSession(): SessionData {
    const [session, setSession] = useState<any>(null);
    const [isPending, setIsPending] = useState(true);
+   const [isRefetching, setIsRefetching] = useState(false);
    const [error, setError] = useState<any>(null);
 
    const refetch = async () => {
-      setIsPending(true);
+      setIsRefetching(true);
       setError(null);
       await fetchSession();
+      setIsRefetching(false);
    };
 
    const fetchSession = async () => {
@@ -57,5 +59,5 @@ export function useSession(): SessionData {
       fetchSession();
    }, []);
 
-   return { data: session, isPending, error, refetch };
+   return { data: session, isPending, isRefetching, error, refetch };
 }
