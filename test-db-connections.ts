@@ -118,7 +118,7 @@ async function testDrizzleConnection() {
     // Test basic query
     const result = await db.execute(sql`SELECT NOW() as current_time`);
     log('success', 'Drizzle ORM connection successful');
-    log('info', `Database time: ${JSON.stringify(result.rows[0])}`);
+    log('info', `Database time: ${JSON.stringify(result[0])}`);
 
     // Close connection
     await client.end();
@@ -149,14 +149,14 @@ async function testDatabaseSchema() {
         ) as exists
       `);
 
-      const exists = result.rows[0]?.exists;
+      const exists = result[0]?.exists;
 
       if (exists) {
         log('success', `Table '${tableName}' exists`);
 
         // Get row count
         const countResult = await db.execute(sql`SELECT COUNT(*) as count FROM ${sql.identifier(tableName)}`);
-        const count = countResult.rows[0]?.count || 0;
+        const count = countResult[0]?.count || 0;
         log('info', `  └─ Row count: ${count}`);
       } else {
         log('error', `Table '${tableName}' does NOT exist`);
@@ -242,14 +242,14 @@ async function testAnalyticsTracking() {
     log('success', 'Analytics events table accessible');
 
     const totalAnalytics = await db.execute(sql`SELECT COUNT(*) as count FROM analytics_events`);
-    log('info', `Total analytics events: ${totalAnalytics.rows[0]?.count || 0}`);
+    log('info', `Total analytics events: ${totalAnalytics[0]?.count || 0}`);
 
     // Test feedback submissions
     const feedbackCount = await db.select().from(feedbackSubmissions).limit(1);
     log('success', 'Feedback submissions table accessible');
 
     const totalFeedback = await db.execute(sql`SELECT COUNT(*) as count FROM feedback_submissions`);
-    log('info', `Total feedback submissions: ${totalFeedback.rows[0]?.count || 0}`);
+    log('info', `Total feedback submissions: ${totalFeedback[0]?.count || 0}`);
 
     await client.end();
     return true;
