@@ -59,5 +59,5 @@ export function useSession(): SessionData {
       fetchSession();
    }, []);
 
-   return { data: session, isPending, isRefetching, error, refetch };
+   return { data: session, isPending, error, refetch } as any;
 }
