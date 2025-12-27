@@ -45,33 +45,33 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/brand/favicons/apple-touch-icon.png" />
         <meta name="theme-color" content="#38BDF8" />
       </head>
-      <body className="antialiased">
-        <Script
-          id="orchids-browser-logs"
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts/orchids-browser-logs.js"
-          strategy="afterInteractive"
-          data-orchids-project-id="ea90ffb8-c80d-4a58-a133-17f6c1889bf6"
-        />
-        <ThemeProvider defaultTheme="dark" storageKey="knimex-ui-theme">
-          <ErrorReporter />
-          <Script
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts//route-messenger.js"
+        <body className="antialiased">
+          {/* <Script
+            id="orchids-browser-logs"
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts/orchids-browser-logs.js"
             strategy="afterInteractive"
-            data-target-origin="*"
-            data-message-type="ROUTE_CHANGE"
-            data-include-search-params="true"
-            data-only-in-iframe="true"
-            data-debug="true"
-            data-custom-data='{"appName": "KNIMEX", "version": "1.0.0", "greeting": "hi"}'
-          />
-            {children}
-            <CookieBanner />
-            <Toaster />
-            <Analytics />
-            <SpeedInsights />
-          <VisualEditsMessenger />
-        </ThemeProvider>
-      </body>
+            data-orchids-project-id="ea90ffb8-c80d-4a58-a133-17f6c1889bf6"
+          /> */}
+          <ThemeProvider defaultTheme="dark" storageKey="knimex-ui-theme">
+            <ErrorReporter />
+            {/* <Script
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts/route-messenger.js"
+              strategy="afterInteractive"
+              data-target-origin="*"
+              data-message-type="ROUTE_CHANGE"
+              data-include-search-params="true"
+              data-only-in-iframe="true"
+              data-debug="true"
+              data-custom-data='{"appName": "KNIMEX", "version": "1.0.0", "greeting": "hi"}'
+            /> */}
+              {children}
+              <CookieBanner />
+              <Toaster />
+              <Analytics />
+              <SpeedInsights />
+            {/* <VisualEditsMessenger /> */}
+          </ThemeProvider>
+        </body>
     </html>
   );
 }
