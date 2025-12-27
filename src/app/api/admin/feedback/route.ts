@@ -1,42 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 import { db } from '@/db';
-import { feedbackSubmissions, user } from '@/db/schema';
+import { feedbackSubmissions } from '@/db/schema';
 import { eq, and, desc, count } from 'drizzle-orm';
-import { auth } from '@/lib/auth';
+import { checkAdminAccess } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    // Authentication check
-    const session = await auth.api.getSession({ headers: await headers() });
-    
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'UNAUTHORIZED' },
-        { status: 401 }
-      );
-    }
+    // Check admin access
+    const adminCheck = await checkAdminAccess();
 
-    // Admin check
-    const isAdmin = session.user.email.toLowerCase().includes('admin');
-    
-    // Alternative admin check: verify if user is the first user in database
-    let isFirstUser = false;
-    if (!isAdmin) {
-      const firstUser = await db.select()
-        .from(user)
-        .orderBy(user.createdAt)
-        .limit(1);
-      
-      if (firstUser.length > 0 && firstUser[0].id === session.user.id) {
-        isFirstUser = true;
-      }
-    }
-
-    if (!isAdmin && !isFirstUser) {
+    if (!adminCheck.isAdmin) {
       return NextResponse.json(
-        { error: 'Forbidden - Admin access required', code: 'FORBIDDEN' },
-        { status: 403 }
+        { error: adminCheck.error || 'Unauthorized', code: adminCheck.user ? 'FORBIDDEN' : 'UNAUTHORIZED' },
+        { status: adminCheck.user ? 403 : 401 }
       );
     }
 

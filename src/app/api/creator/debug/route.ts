@@ -1,37 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 import { db } from '@/db';
 import { user, session, analyticsEvents, feedbackSubmissions } from '@/db/schema';
 import { count, desc } from 'drizzle-orm';
-import { auth } from '@/lib/auth';
+import { checkAdminAccess } from '@/lib/auth';
 import os from 'os';
 
 export async function GET(request: NextRequest) {
   try {
-    // 1. Authenticate and check if creator/admin
-    const authSession = await auth.api.getSession({ headers: await headers() });
-    
-    // For extreme security, we could also check a secret header
-    // const masterKey = request.headers.get('x-master-key');
-    // if (masterKey !== process.env.MASTER_KEY) ...
+    // Check admin access
+    const adminCheck = await checkAdminAccess();
 
-    if (!authSession || !authSession.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!adminCheck.isAdmin) {
+      return NextResponse.json({
+        error: adminCheck.error || "Unauthorized"
+      }, { status: adminCheck.user ? 403 : 401 });
     }
 
-    const isAdmin = authSession.user.email.toLowerCase().includes('admin');
-    
-    // Get first user to see if current user is the creator
-    const firstUser = await db.select({ id: user.id })
-      .from(user)
-      .orderBy(user.createdAt)
-      .limit(1);
-    
-    const isCreator = firstUser.length > 0 && firstUser[0].id === authSession.user.id;
-
-    if (!isAdmin && !isCreator) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const authSession = { user: adminCheck.user };
 
     // 2. Gather Debug & Monitor Data
     
@@ -79,8 +64,7 @@ export async function GET(request: NextRequest) {
       creator: {
         id: authSession.user.id,
         email: authSession.user.email,
-        isCreator,
-        isAdmin
+        isAdmin: true
       },
       metrics: {
         totalUsers: userCount.val,
