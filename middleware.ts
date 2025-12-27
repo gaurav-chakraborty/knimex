@@ -37,16 +37,23 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // Skip admin redirect for API routes (they handle auth themselves)
+  if (pathname.startsWith("/admin") && !pathname.startsWith("/api/admin")) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
   const response = NextResponse.next();
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ltnyquqksxinxkbzdtzs.supabase.co";
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://slelguoygbfzlpylpxfs.supabase.co;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com ${supabaseUrl};
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' data: blob: https://** http://**;
     font-src 'self' https://fonts.gstatic.com;
-    connect-src 'self' ${supabaseUrl} https://api.vercel.com https://slelguoygbfzlpylpxfs.supabase.co;
+    connect-src 'self' ${supabaseUrl} https://api.vercel.com;
     media-src 'self' blob:;
     frame-src 'self';
     worker-src 'self' blob:;
@@ -61,7 +68,7 @@ export function middleware(request: NextRequest) {
 
   const origin = request.headers.get("origin");
   const allowedOrigins = ["https://knimex.space", "https://www.knimex.space", "http://localhost:3000"];
-  
+
   if (origin && allowedOrigins.includes(origin)) {
     response.headers.set("Access-Control-Allow-Origin", origin);
     response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -69,12 +76,6 @@ export function middleware(request: NextRequest) {
     response.headers.set("Access-Control-Max-Age", "86400");
   }
 
-  if (pathname.startsWith("/admin")) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-  
   return response;
 }
 
