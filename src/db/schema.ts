@@ -1,30 +1,22 @@
-import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
+import { pgTable, text, timestamp, boolean, integer, jsonb, serial } from 'drizzle-orm/pg-core';
 
-
-
-// Auth tables for better-auth
-export const user = sqliteTable("user", {
+// Auth tables for better-auth (Postgres)
+export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" })
-    .$defaultFn(() => false)
-    .notNull(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .$defaultFn(() => new Date())
-    .notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
-    .$defaultFn(() => new Date())
-    .notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const session = sqliteTable("session", {
+export const session = pgTable("session", {
   id: text("id").primaryKey(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
   token: text("token").notNull().unique(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   userId: text("user_id")
@@ -32,7 +24,7 @@ export const session = sqliteTable("session", {
     .references(() => user.id, { onDelete: "cascade" }),
 });
 
-export const account = sqliteTable("account", {
+export const account = pgTable("account", {
   id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
@@ -42,54 +34,44 @@ export const account = sqliteTable("account", {
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
-  accessTokenExpiresAt: integer("access_token_expires_at", {
-    mode: "timestamp",
-  }),
-  refreshTokenExpiresAt: integer("refresh_token_expires_at", {
-    mode: "timestamp",
-  }),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
   scope: text("scope"),
   password: text("password"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
 });
 
-export const verification = sqliteTable("verification", {
+export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
-    () => new Date(),
-  ),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
-    () => new Date(),
-  ),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Analytics Events Table
-export const analyticsEvents = sqliteTable('analytics_events', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+// Analytics Events Table (Postgres)
+export const analyticsEvents = pgTable('analytics_events', {
+  id: serial('id').primaryKey(),
   userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
-  eventType: text('event_type').notNull(), // page_view, file_upload, file_download, metadata_edit, social_share, feedback_submit
-  eventData: text('event_data', { mode: 'json' }),
+  eventType: text('event_type').notNull(),
+  eventData: jsonb('event_data'),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
   referrer: text('referrer'),
-  createdAt: text('created_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-// Feedback Submissions Table
-export const feedbackSubmissions = sqliteTable('feedback_submissions', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+// Feedback Submissions Table (Postgres)
+export const feedbackSubmissions = pgTable('feedback_submissions', {
+  id: serial('id').primaryKey(),
   userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
   email: text('email').notNull(),
   subject: text('subject').notNull(),
   message: text('message').notNull(),
   rating: integer('rating'),
-  category: text('category'), // bug, feature, support, praise
-  status: text('status').notNull().default('new'), // new, in_review, resolved, closed
-  createdAt: text('created_at').notNull(),
+  category: text('category'),
+  status: text('status').notNull().default('new'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
-
-// Waitlist Table
