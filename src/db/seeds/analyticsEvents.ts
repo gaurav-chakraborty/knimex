@@ -6,7 +6,7 @@ async function main() {
     const getDateDaysAgo = (days: number) => {
         const date = new Date(now);
         date.setDate(date.getDate() - days);
-        return date.toISOString();
+        return date;
     };
 
     const userIds = [

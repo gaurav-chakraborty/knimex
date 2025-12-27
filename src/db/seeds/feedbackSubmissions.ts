@@ -10,7 +10,7 @@ async function main() {
             category: 'review',
             status: 'new',
             message: 'Great platform! Love the ease of use and clean interface.',
-            createdAt: new Date('2024-12-28').toISOString(),
+            createdAt: new Date('2024-12-28'),
         },
         {
             userId: 'user_abc123xyz',
@@ -19,7 +19,7 @@ async function main() {
             category: 'review',
             status: 'reviewed',
             message: 'Very helpful tool. Would be nice to have dark mode support.',
-            createdAt: new Date('2024-12-25').toISOString(),
+            createdAt: new Date('2024-12-25'),
         },
         {
             userId: 'user_def456uvw',
@@ -28,7 +28,7 @@ async function main() {
             category: 'review',
             status: 'resolved',
             message: 'Had some initial issues but support team was fantastic.',
-            createdAt: new Date('2024-12-20').toISOString(),
+            createdAt: new Date('2024-12-20'),
         },
         {
             userId: null,
@@ -37,7 +37,7 @@ async function main() {
             category: 'feature',
             status: 'new',
             message: 'Would love to see API access for automation. This would save us hours.',
-            createdAt: new Date('2025-01-05').toISOString(),
+            createdAt: new Date('2025-01-05'),
         },
         {
             userId: 'user_ghi789rst',
@@ -46,7 +46,7 @@ async function main() {
             category: 'feature',
             status: 'reviewed',
             message: 'Bulk export functionality would be incredibly useful for our team.',
-            createdAt: new Date('2025-01-02').toISOString(),
+            createdAt: new Date('2025-01-02'),
         },
         {
             userId: null,
@@ -55,7 +55,7 @@ async function main() {
             category: 'feature',
             status: 'resolved',
             message: 'Real-time collaboration features would make this perfect.',
-            createdAt: new Date('2024-12-30').toISOString(),
+            createdAt: new Date('2024-12-30'),
         },
         {
             userId: 'user_jkl012opq',
@@ -64,7 +64,7 @@ async function main() {
             category: 'partnership',
             status: 'new',
             message: 'Interested in discussing integration partnership opportunities.',
-            createdAt: new Date('2025-01-07').toISOString(),
+            createdAt: new Date('2025-01-07'),
         },
         {
             userId: null,
@@ -73,7 +73,7 @@ async function main() {
             category: 'partnership',
             status: 'reviewed',
             message: 'Our agency would like to explore reseller partnership options.',
-            createdAt: new Date('2025-01-04').toISOString(),
+            createdAt: new Date('2025-01-04'),
         },
     ];
 
