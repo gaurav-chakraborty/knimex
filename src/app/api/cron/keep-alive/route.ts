@@ -1,20 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-// Supabase client with service role key (bypasses RLS)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
-
 export const dynamic = 'force-dynamic';
 export const runtime = 'edge';
+
+// Lazy initialization of Supabase client to avoid build-time errors
+function getSupabaseClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  );
+}
 
 export async function GET(request: Request) {
   const startTime = Date.now();
@@ -32,6 +34,8 @@ export async function GET(request: Request) {
   }
 
   try {
+    const supabase = getSupabaseClient();
+
     // Simple query to keep database active
     // Try user_activity table first, fall back to auth.users if it doesn't exist
     let querySuccess = false;
