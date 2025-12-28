@@ -1,10 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization to avoid build-time errors
+function getSupabaseClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +24,8 @@ export async function GET() {
   };
 
   try {
+    const supabase = getSupabaseClient();
+
     // Check 1: Supabase connection via auth service
     try {
       const { error } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1 });
