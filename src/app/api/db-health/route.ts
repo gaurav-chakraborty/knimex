@@ -6,35 +6,32 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const checks = {
-    database: false,
-    auth: false,
+    supabase_connection: false,
+    auth_service: false,
     tables: {
       user_activity: false,
       user_stats: false,
       keep_alive_pings: false
-    }
+    },
+    errors: [] as string[]
   };
 
   try {
-    // Check 1: Database connection
-    const { error: dbError } = await supabase
-      .from('user_activity')
-      .select('count')
-      .limit(1);
-
-    checks.database = !dbError || dbError.code === 'PGRST116';
-
-    // Check 2: Auth service
+    // Check 1: Supabase connection via auth service
     try {
-      await supabase.auth.getSession();
-      checks.auth = true;
-    } catch (e) {
-      console.warn('Auth check failed:', e);
+      const { error } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1 });
+      checks.supabase_connection = !error;
+      checks.auth_service = !error;
+      if (error) checks.errors.push(`Auth error: ${error.message}`);
+    } catch (e: any) {
+      checks.errors.push(`Connection error: ${e.message}`);
     }
 
-    // Check 3: Tables exist
+    // Check 2: Required tables
     const tables = ['user_activity', 'user_stats', 'keep_alive_pings'];
     for (const table of tables) {
       try {
@@ -42,23 +39,39 @@ export async function GET() {
           .from(table)
           .select('count')
           .limit(1);
-        checks.tables[table as keyof typeof checks.tables] = !error || error.code === 'PGRST116';
-      } catch (e) {
-        console.warn(`Table ${table} check failed:`, e);
+
+        // Table exists if no error or just empty (PGRST116)
+        const exists = !error || error.code === 'PGRST116';
+        checks.tables[table as keyof typeof checks.tables] = exists;
+
+        if (!exists) {
+          checks.errors.push(`Table '${table}' missing or inaccessible`);
+        }
+      } catch (e: any) {
+        checks.errors.push(`Table '${table}' check failed: ${e.message}`);
       }
     }
 
-    const allHealthy = checks.database && checks.auth && Object.values(checks.tables).every(Boolean);
+    // Overall health
+    const allTablesExist = Object.values(checks.tables).every(Boolean);
+    const isHealthy = checks.supabase_connection && checks.auth_service && allTablesExist;
+
+    const status = isHealthy ? 'healthy' :
+                   checks.supabase_connection ? 'degraded' : 'unhealthy';
 
     return NextResponse.json({
-      status: allHealthy ? 'healthy' : 'degraded',
+      status,
       checks,
-      timestamp: new Date().toISOString()
-    }, { status: allHealthy ? 200 : 503 });
+      timestamp: new Date().toISOString(),
+      recommendation: !allTablesExist ?
+        'Run the Supabase SQL setup to create missing tables' : null
+    }, {
+      status: isHealthy ? 200 : 503
+    });
 
   } catch (error: any) {
     return NextResponse.json({
-      status: 'unhealthy',
+      status: 'error',
       error: error.message,
       checks,
       timestamp: new Date().toISOString()
