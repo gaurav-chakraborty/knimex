@@ -7,8 +7,7 @@
   "crons": [
     {
       "path": "/api/cron/keep-alive",
-      "schedule": "0 0 * * *",
-      "description": "Daily database keep-alive ping (Vercel Hobby tier compatible)"
+      "schedule": "0 0 * * *"
     }
   ],
   "headers": [
