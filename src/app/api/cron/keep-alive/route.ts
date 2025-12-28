@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
+// Supabase client with service role key (bypasses RLS)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -12,25 +13,48 @@ const supabase = createClient(
   }
 );
 
-export async function GET(request: Request) {
-  // Verify authorization
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
+export async function GET(request: Request) {
   const startTime = Date.now();
 
-  try {
-    // Simple database query to keep connection alive
-    const { data, error } = await supabase
-      .from('user_activity')
-      .select('count')
-      .limit(1);
+  // Verify authorization
+  const authHeader = request.headers.get('authorization');
+  const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
 
-    // PGRST116 = table empty, which is fine
-    if (error && error.code !== 'PGRST116') {
-      throw error;
+  if (authHeader !== expectedAuth) {
+    console.warn('Unauthorized keep-alive attempt');
+    return NextResponse.json({
+      error: 'Unauthorized',
+      timestamp: new Date().toISOString()
+    }, { status: 401 });
+  }
+
+  try {
+    // Simple query to keep database active
+    // Try user_activity table first, fall back to auth.users if it doesn't exist
+    let querySuccess = false;
+    let error = null;
+
+    try {
+      const { error: activityError } = await supabase
+        .from('user_activity')
+        .select('count')
+        .limit(1);
+
+      // PGRST116 = table empty (acceptable)
+      // 42P01 = table doesn't exist (need to create tables)
+      querySuccess = !activityError || activityError.code === 'PGRST116';
+      error = activityError;
+    } catch (e) {
+      // Fall back to checking auth.users (always exists)
+      const { error: authError } = await supabase.auth.admin.listUsers({
+        page: 1,
+        perPage: 1
+      });
+      querySuccess = !authError;
+      error = authError;
     }
 
     const responseTime = Date.now() - startTime;
@@ -41,11 +65,24 @@ export async function GET(request: Request) {
         .from('keep_alive_pings')
         .insert({
           ping_type: 'cron',
-          status: 'success',
-          response_time_ms: responseTime
+          status: querySuccess ? 'success' : 'warning',
+          response_time_ms: responseTime,
+          error_message: error?.message || null
         });
-    } catch (logError) {
-      console.warn('Could not log ping (table may not exist):', logError);
+    } catch (logError: any) {
+      console.warn('Could not log ping (table may not exist):', logError.message);
+    }
+
+    if (!querySuccess) {
+      console.error('Database query failed:', error);
+      return NextResponse.json({
+        success: false,
+        message: 'Database query failed',
+        error: error?.message,
+        hint: 'Tables may need to be created. Run the SQL setup.',
+        responseTime: `${responseTime}ms`,
+        timestamp: new Date().toISOString()
+      }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -57,17 +94,18 @@ export async function GET(request: Request) {
 
   } catch (error: any) {
     const responseTime = Date.now() - startTime;
-
     console.error('Keep-alive ping failed:', error);
 
     return NextResponse.json({
       success: false,
       error: error.message,
+      responseTime: `${responseTime}ms`,
       timestamp: new Date().toISOString()
     }, { status: 500 });
   }
 }
 
+// Allow POST for manual testing
 export async function POST(request: Request) {
   return GET(request);
 }
