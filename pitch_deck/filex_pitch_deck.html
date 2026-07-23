@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FileX - Product Pitch Deck v1.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { width: 1280px; overflow: hidden; background: #E2E8F0; font-family: 'Inter', sans-serif; }
+
+        /* SLIDE COMMON STYLES */
+        .slide { width: 1280px; height: 720px; position: relative; background: #FFFFFF; border: 20px solid #0A192F; overflow: hidden; page-break-after: always; margin-bottom: 2px; }
+        .grid-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .grid-col { position: absolute; top: 0; height: 100%; width: 1px; background: rgba(10,25,47,0.1); }
+        .grid-row { position: absolute; left: 0; width: 100%; height: 1px; background: rgba(10,25,47,0.1); }
+        .crosshair-h { position: absolute; width: 10px; height: 1px; background: #FF5722; pointer-events: none; }
+        .crosshair-v { position: absolute; width: 1px; height: 10px; background: #FF5722; pointer-events: none; }
+        .header-bar { position: absolute; top: 30px; left: 80px; right: 80px; }
+        .header-bar h1 { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 28px; color: #0A192F; text-transform: uppercase; letter-spacing: 2px; }
+        .header-bar .subtitle { font-family: 'Inter', sans-serif; font-size: 16px; color: #1E293B; margin-top: 8px; opacity: 0.8; }
+        .content-area { position: absolute; top: 115px; left: 80px; right: 80px; bottom: 100px; }
+        .main-title { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 28px; color: #0A192F; text-transform: uppercase; margin-bottom: 30px; line-height: 1.3; }
+        .accent-line { position: absolute; top: 30px; right: 80px; width: 60px; height: 4px; background: #FF5722; border-radius: 2px; }
+        .footer { position: absolute; bottom: 40px; left: 80px; right: 80px; border-top: 1px solid #0A192F; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .footer span { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #0A192F; }
+        .footer .page-num { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #FF5722; font-weight: 700; }
+
+        /* SLIDE 1 SPECIFIC */
+        .cards-row { display: flex; gap: 40px; }
+        .point-card { flex: 1; background: #F8FAFC; border: 2px solid #0A192F; border-radius: 4px; padding: 30px; position: relative; }
+        .point-card .card-icon { width: 50px; height: 50px; background: #0A192F; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+        .point-card .card-icon i { color: #FF5722; font-size: 22px; }
+        .point-card .card-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #FF5722; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; background: #0A192F; display: inline-block; padding: 3px 8px; border-radius: 2px; }
+        .point-card h3 { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 18px; color: #0A192F; margin-bottom: 12px; }
+        .point-card p { font-family: 'Inter', sans-serif; font-size: 16px; color: #1E293B; line-height: 1.6; }
+
+        /* SLIDE 2 SPECIFIC */
+        .split-layout { display: flex; gap: 30px; align-items: stretch; }
+        .split-left { flex: 1; }
+        .split-right { flex: 1; }
+        .problem-box { background: #FEF2F2; border: 2px solid #DC2626; border-radius: 4px; padding: 20px; margin-bottom: 16px; }
+        .problem-box h3 { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; color: #DC2626; text-transform: uppercase; margin-bottom: 10px; }
+        .problem-box p { font-family: 'Inter', sans-serif; font-size: 14px; color: #1E293B; line-height: 1.5; }
+        .problem-box ul { list-style: none; padding: 0; margin-top: 8px; }
+        .problem-box ul li { font-family: 'Inter', sans-serif; font-size: 13px; color: #1E293B; padding: 4px 0; }
+        .problem-box ul li::before { content: "✗ "; color: #DC2626; font-weight: 700; }
+        .solution-box { background: #F0FDF4; border: 2px solid #16A34A; border-radius: 4px; padding: 20px; margin-bottom: 16px; }
+        .solution-box h3 { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; color: #16A34A; text-transform: uppercase; margin-bottom: 10px; }
+        .solution-box p { font-family: 'Inter', sans-serif; font-size: 14px; color: #1E293B; line-height: 1.5; }
+        .solution-box ul { list-style: none; padding: 0; margin-top: 8px; }
+        .solution-box ul li { font-family: 'Inter', sans-serif; font-size: 13px; color: #1E293B; padding: 4px 0; }
+        .solution-box ul li::before { content: "✓ "; color: #16A34A; font-weight: 700; }
+        .chart-container { background: #F8FAFC; border: 1px solid rgba(10,25,47,0.1); border-radius: 4px; padding: 16px; }
+        .chart-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #0A192F; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+        .chart-wrapper { position: relative; height: 180px; }
+
+        /* SLIDE 3 SPECIFIC */
+        .two-col { display: flex; gap: 30px; }
+        .col-left { flex: 1.1; }
+        .col-right { flex: 0.9; }
+        .ai-section { background: linear-gradient(135deg, #0A192F 0%, #1E293B 100%); border-radius: 6px; padding: 20px; margin-bottom: 16px; }
+        .ai-section .ibm-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #FF5722; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; background: rgba(255,87,34,0.15); display: inline-block; padding: 4px 10px; border-radius: 3px; border: 1px solid #FF5722; }
+        .ai-section h3 { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; color: #FFFFFF; margin-bottom: 10px; }
+        .ai-section p { font-family: 'Inter', sans-serif; font-size: 14px; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 12px; }
+        .ai-features { display: flex; gap: 12px; }
+        .ai-feature { flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,87,34,0.3); border-radius: 4px; padding: 12px; text-align: center; }
+        .ai-feature i { color: #FF5722; font-size: 20px; margin-bottom: 6px; }
+        .ai-feature span { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tech-stack { background: #F8FAFC; border: 1px solid rgba(10,25,47,0.1); border-radius: 4px; padding: 16px; }
+        .tech-stack .section-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #FF5722; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; background: #0A192F; display: inline-block; padding: 3px 8px; border-radius: 2px; }
+        .tech-row { margin-bottom: 12px; }
+        .tech-row .row-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #0A192F; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; opacity: 0.7; }
+        .tech-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .tech-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0A192F; background: #E2E8F0; padding: 4px 10px; border-radius: 3px; border-left: 3px solid #FF5722; }
+
+        /* SLIDE 4 SPECIFIC */
+        .market-section .section-label, .roadmap-section .section-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #FF5722; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; background: #0A192F; display: inline-block; padding: 3px 8px; border-radius: 2px; }
+        .segment-cards { display: flex; gap: 12px; margin-top: 12px; }
+        .segment-card { flex: 1; background: #F8FAFC; border: 1px solid rgba(10,25,47,0.1); border-radius: 4px; padding: 12px; text-align: center; }
+        .segment-card i { font-size: 18px; }
+        .segment-card .seg-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0A192F; margin-top: 6px; }
+        .roadmap-section { background: #F8FAFC; border: 1px solid rgba(10,25,47,0.1); border-radius: 4px; padding: 16px; }
+        .roadmap-item { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(10,25,47,0.08); }
+        .roadmap-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .roadmap-dot { width: 12px; height: 12px; background: #FF5722; border-radius: 50%; flex-shrink: 0; margin-top: 3px; border: 2px solid #0A192F; }
+        .roadmap-content h4 { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; color: #0A192F; margin-bottom: 4px; }
+        .roadmap-content p { font-family: 'Inter', sans-serif; font-size: 13px; color: #1E293B; line-height: 1.5; }
+        .roadmap-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #FF5722; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; display: inline-block; }
+
+        /* PAGE BREAK */
+        @media print {
+            .slide { page-break-after: always; }
+        }
+        .slide-divider { height: 40px; background: #0A192F; display: flex; align-items: center; justify-content: center; }
+        .slide-divider span { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #FF5722; text-transform: uppercase; letter-spacing: 3px; }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== SLIDE 1: VISION ==================== -->
+    <div class="slide" id="slide1">
+        <div class="grid-overlay">
+            <div class="grid-col" style="left: 10.67%;"></div>
+            <div class="grid-col" style="left: 21.33%;"></div>
+            <div class="grid-col" style="left: 32%;"></div>
+            <div class="grid-col" style="left: 42.67%;"></div>
+            <div class="grid-col" style="left: 53.33%;"></div>
+            <div class="grid-col" style="left: 64%;"></div>
+            <div class="grid-col" style="left: 74.67%;"></div>
+            <div class="grid-col" style="left: 85.33%;"></div>
+            <div class="grid-col" style="left: 96%;"></div>
+            <div class="grid-row" style="top: 12.5%;"></div>
+            <div class="grid-row" style="top: 25%;"></div>
+            <div class="grid-row" style="top: 37.5%;"></div>
+            <div class="grid-row" style="top: 50%;"></div>
+            <div class="grid-row" style="top: 62.5%;"></div>
+            <div class="grid-row" style="top: 75%;"></div>
+            <div class="grid-row" style="top: 87.5%;"></div>
+        </div>
+        <div class="crosshair-h" style="top: 12.5%; left: 21.33%;"></div>
+        <div class="crosshair-v" style="top: 12.5%; left: 21.33%;"></div>
+        <div class="crosshair-h" style="top: 50%; left: 53.33%;"></div>
+        <div class="crosshair-v" style="top: 50%; left: 53.33%;"></div>
+        <div class="accent-line"></div>
+        <div class="header-bar">
+            <h1><i class="fas fa-shield-alt" style="color: #FF5722; margin-right: 10px;"></i>FileX</h1>
+            <div class="subtitle">Secure Metadata Management Platform</div>
+        </div>
+        <div class="content-area">
+            <h2 class="main-title" style="font-size: 36px;">Reclaiming Digital Privacy<br>in a Hyper-Connected World</h2>
+            <div class="cards-row">
+                <div class="point-card">
+                    <div class="card-icon"><i class="fas fa-lock"></i></div>
+                    <div class="card-label">CORE PILLAR</div>
+                    <h3>Privacy-First Architecture</h3>
+                    <p>FileX operates entirely client-side — your files never leave your browser. No servers, no uploads, no compromises. Metadata extraction, sanitization, and risk assessment happen locally on your device.</p>
+                </div>
+                <div class="point-card">
+                    <div class="card-icon"><i class="fas fa-check-double"></i></div>
+                    <div class="card-label">MISSION</div>
+                    <h3>Built for Trust</h3>
+                    <p>Open-source transparency meets enterprise-grade security. Every line of code is auditable. Every metadata field is controllable. Users own their data — from upload to export to permanent deletion.</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <span>FILEX // PRODUCT PITCH DECK v1.0</span>
+            <span>REF: QLPS202405-001</span>
+            <span class="page-num">PAGE 01/04</span>
+        </div>
+    </div>
+
+    <div class="slide-divider"><span>— PAGE BREAK —</span></div>
+
+    <!-- ==================== SLIDE 2: PROBLEM & SOLUTION ==================== -->
+    <div class="slide" id="slide2">
+        <div class="grid-overlay">
+            <div class="grid-col" style="left: 10.67%;"></div>
+            <div class="grid-col" style="left: 21.33%;"></div>
+            <div class="grid-col" style="left: 32%;"></div>
+            <div class="grid-col" style="left: 42.67%;"></div>
+            <div class="grid-col" style="left: 53.33%;"></div>
+            <div class="grid-col" style="left: 64%;"></div>
+            <div class="grid-col" style="left: 74.67%;"></div>
+            <div class="grid-col" style="left: 85.33%;"></div>
+            <div class="grid-col" style="left: 96%;"></div>
+            <div class="grid-row" style="top: 12.5%;"></div>
+            <div class="grid-row" style="top: 25%;"></div>
+            <div class="grid-row" style="top: 37.5%;"></div>
+            <div class="grid-row" style="top: 50%;"></div>
+            <div class="grid-row" style="top: 62.5%;"></div>
+            <div class="grid-row" style="top: 75%;"></div>
+            <div class="grid-row" style="top: 87.5%;"></div>
+        </div>
+        <div class="crosshair-h" style="top: 25%; left: 53.33%;"></div>
+        <div class="crosshair-v" style="top: 25%; left: 53.33%;"></div>
+        <div class="crosshair-h" style="top: 50%; left: 32%;"></div>
+        <div class="crosshair-v" style="top: 50%; left: 32%;"></div>
+        <div class="accent-line"></div>
+        <div class="header-bar">
+            <h1><i class="fas fa-shield-alt" style="color: #FF5722; margin-right: 10px;"></i>FileX</h1>
+            <div class="subtitle">Secure Metadata Management Platform</div>
+        </div>
+        <div class="content-area">
+            <h2 class="main-title">Your Files Are Leaking More Than You Think</h2>
+            <div class="split-layout">
+                <div class="split-left">
+                    <div class="problem-box">
+                        <h3><i class="fas fa-exclamation-triangle"></i> The Hidden Problem</h3>
+                        <p>Every photo, document, and spreadsheet carries hidden metadata — GPS coordinates, device identifiers, author names, and creation timestamps — that expose sensitive personal and professional information.</p>
+                        <ul>
+                            <li>97% of photos contain GPS metadata by default</li>
+                            <li>Corporate documents leak author & org info</li>
+                            <li>Medical records expose patient identifiers</li>
+                            <li>No easy tool for batch metadata sanitization</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="split-right">
+                    <div class="solution-box">
+                        <h3><i class="fas fa-rocket"></i> The FileX Solution</h3>
+                        <p>FileX provides a unified, browser-based platform for identifying, extracting, and removing sensitive metadata from any file — with AI-powered risk assessment and privacy templates.</p>
+                        <ul>
+                            <li>Universal file support (images, PDFs, docs)</li>
+                            <li>Client-side processing — zero server exposure</li>
+                            <li>AI risk scoring with actionable suggestions</li>
+                            <li>Privacy templates for common scenarios</li>
+                        </ul>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Universal File Format Support</div>
+                        <div class="chart-wrapper">
+                            <canvas id="fileSupportChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <span>FILEX // PRODUCT PITCH DECK v1.0</span>
+            <span>REF: QLPS202405-001</span>
+            <span class="page-num">PAGE 02/04</span>
+        </div>
+    </div>
+
+    <div class="slide-divider"><span>— PAGE BREAK —</span></div>
+
+    <!-- ==================== SLIDE 3: AI & TECH STACK ==================== -->
+    <div class="slide" id="slide3">
+        <div class="grid-overlay">
+            <div class="grid-col" style="left: 10.67%;"></div>
+            <div class="grid-col" style="left: 21.33%;"></div>
+            <div class="grid-col" style="left: 32%;"></div>
+            <div class="grid-col" style="left: 42.67%;"></div>
+            <div class="grid-col" style="left: 53.33%;"></div>
+            <div class="grid-col" style="left: 64%;"></div>
+            <div class="grid-col" style="left: 74.67%;"></div>
+            <div class="grid-col" style="left: 85.33%;"></div>
+            <div class="grid-col" style="left: 96%;"></div>
+            <div class="grid-row" style="top: 12.5%;"></div>
+            <div class="grid-row" style="top: 25%;"></div>
+            <div class="grid-row" style="top: 37.5%;"></div>
+            <div class="grid-row" style="top: 50%;"></div>
+            <div class="grid-row" style="top: 62.5%;"></div>
+            <div class="grid-row" style="top: 75%;"></div>
+            <div class="grid-row" style="top: 87.5%;"></div>
+        </div>
+        <div class="crosshair-h" style="top: 25%; left: 53.33%;"></div>
+        <div class="crosshair-v" style="top: 25%; left: 53.33%;"></div>
+        <div class="crosshair-h" style="top: 50%; left: 42.67%;"></div>
+        <div class="crosshair-v" style="top: 50%; left: 42.67%;"></div>
+        <div class="crosshair-h" style="top: 75%; left: 21.33%;"></div>
+        <div class="crosshair-v" style="top: 75%; left: 21.33%;"></div>
+        <div class="accent-line"></div>
+        <div class="header-bar">
+            <h1><i class="fas fa-shield-alt" style="color: #FF5722; margin-right: 10px;"></i>FileX</h1>
+            <div class="subtitle">Secure Metadata Management Platform</div>
+        </div>
+        <div class="content-area">
+            <h2 class="main-title">AI-Powered Protection and a Professional Tech Stack</h2>
+            <div class="two-col">
+                <div class="col-left">
+                    <div class="ai-section">
+                        <div class="ibm-badge"><i class="fas fa-brain"></i>&nbsp; IBM Watson Powered</div>
+                        <h3>Intelligent Risk Assessment Module</h3>
+                        <p>During development, IBM Watson's AI toolkit was used for prototyping the AI-powered risk assessment module. This integration helped refine the logic for identifying and categorizing sensitive information within file metadata, contributing to the robust privacy protection mechanisms now embedded in FileX.</p>
+                        <div class="ai-features">
+                            <div class="ai-feature">
+                                <i class="fas fa-search"></i>
+                                <span>Identify Hidden Risks</span>
+                            </div>
+                            <div class="ai-feature">
+                                <i class="fas fa-tags"></i>
+                                <span>Categorize Data</span>
+                            </div>
+                            <div class="ai-feature">
+                                <i class="fas fa-lightbulb"></i>
+                                <span>Actionable Tips</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Technology Stack Components</div>
+                        <div class="chart-wrapper">
+                            <canvas id="techStackChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-right">
+                    <div class="tech-stack">
+                        <div class="section-label">TECH STACK</div>
+                        <div class="tech-row">
+                            <div class="row-label">Frontend</div>
+                            <div class="tech-tags">
+                                <span class="tech-tag">Next.js 15</span>
+                                <span class="tech-tag">React 19</span>
+                                <span class="tech-tag">TailwindCSS</span>
+                            </div>
+                        </div>
+                        <div class="tech-row">
+                            <div class="row-label">Backend</div>
+                            <div class="tech-tags">
+                                <span class="tech-tag">Supabase PostgreSQL</span>
+                                <span class="tech-tag">Better-Auth</span>
+                                <span class="tech-tag">Drizzle ORM</span>
+                            </div>
+                        </div>
+                        <div class="tech-row">
+                            <div class="row-label">Client Libraries</div>
+                            <div class="tech-tags">
+                                <span class="tech-tag">JSZip</span>
+                                <span class="tech-tag">jspdf</span>
+                                <span class="tech-tag">framer-motion</span>
+                            </div>
+                        </div>
+                        <div class="tech-row" style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(10,25,47,0.1);">
+                            <div class="row-label">AI Integration</div>
+                            <div class="tech-tags">
+                                <span class="tech-tag">IBM Watson</span>
+                                <span class="tech-tag">NLP Risk Scoring</span>
+                                <span class="tech-tag">Pattern Detection</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <span>FILEX // PRODUCT PITCH DECK v1.0</span>
+            <span>REF: QLPS202405-001</span>
+            <span class="page-num">PAGE 03/04</span>
+        </div>
+    </div>
+
+    <div class="slide-divider"><span>— PAGE BREAK —</span></div>
+
+    <!-- ==================== SLIDE 4: MARKET & FUTURE ==================== -->
+    <div class="slide" id="slide4">
+        <div class="grid-overlay">
+            <div class="grid-col" style="left: 10.67%;"></div>
+            <div class="grid-col" style="left: 21.33%;"></div>
+            <div class="grid-col" style="left: 32%;"></div>
+            <div class="grid-col" style="left: 42.67%;"></div>
+            <div class="grid-col" style="left: 53.33%;"></div>
+            <div class="grid-col" style="left: 64%;"></div>
+            <div class="grid-col" style="left: 74.67%;"></div>
+            <div class="grid-col" style="left: 85.33%;"></div>
+            <div class="grid-col" style="left: 96%;"></div>
+            <div class="grid-row" style="top: 12.5%;"></div>
+            <div class="grid-row" style="top: 25%;"></div>
+            <div class="grid-row" style="top: 37.5%;"></div>
+            <div class="grid-row" style="top: 50%;"></div>
+            <div class="grid-row" style="top: 62.5%;"></div>
+            <div class="grid-row" style="top: 75%;"></div>
+            <div class="grid-row" style="top: 87.5%;"></div>
+        </div>
+        <div class="crosshair-h" style="top: 25%; left: 53.33%;"></div>
+        <div class="crosshair-v" style="top: 25%; left: 53.33%;"></div>
+        <div class="crosshair-h" style="top: 62.5%; left: 32%;"></div>
+        <div class="crosshair-v" style="top: 62.5%; left: 32%;"></div>
+        <div class="crosshair-h" style="top: 75%; left: 74.67%;"></div>
+        <div class="crosshair-v" style="top: 75%; left: 74.67%;"></div>
+        <div class="accent-line"></div>
+        <div class="header-bar">
+            <h1><i class="fas fa-shield-alt" style="color: #FF5722; margin-right: 10px;"></i>FileX</h1>
+            <div class="subtitle">Secure Metadata Management Platform</div>
+        </div>
+        <div class="content-area">
+            <h2 class="main-title">Securing the Digital Footprint of Tomorrow</h2>
+            <div class="two-col">
+                <div class="col-left">
+                    <div class="market-section">
+                        <div class="section-label">TARGET MARKET</div>
+                        <div class="chart-container">
+                            <div class="chart-title">Market Segments</div>
+                            <div class="chart-wrapper">
+                                <canvas id="marketChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="segment-cards">
+                            <div class="segment-card">
+                                <i class="fas fa-user-shield" style="color: #FF5722;"></i>
+                                <div class="seg-label">Privacy-Conscious<br>Individuals</div>
+                            </div>
+                            <div class="segment-card">
+                                <i class="fas fa-building" style="color: #0A192F;"></i>
+                                <div class="seg-label">Corporate<br>Teams</div>
+                            </div>
+                            <div class="segment-card">
+                                <i class="fas fa-code" style="color: #FF5722;"></i>
+                                <div class="seg-label">Developers &<br>Researchers</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-right">
+                    <div class="roadmap-section">
+                        <div class="section-label">PRODUCT ROADMAP</div>
+                        <div class="roadmap-item">
+                            <div class="roadmap-dot"></div>
+                            <div class="roadmap-content">
+                                <h4>Enterprise API Integration</h4>
+                                <p>RESTful and GraphQL APIs for seamless integration into enterprise workflows, DMS platforms, and compliance pipelines.</p>
+                                <span class="roadmap-tag">Q2 2025</span>
+                            </div>
+                        </div>
+                        <div class="roadmap-item">
+                            <div class="roadmap-dot"></div>
+                            <div class="roadmap-content">
+                                <h4>Expanded IBM Watson AI Capabilities</h4>
+                                <p>Deeper NLP analysis, predictive risk scoring, automated policy enforcement, and multi-language support powered by IBM Watson.</p>
+                                <span class="roadmap-tag">Q3 2025</span>
+                            </div>
+                        </div>
+                        <div class="roadmap-item">
+                            <div class="roadmap-dot"></div>
+                            <div class="roadmap-content">
+                                <h4>Mobile Excellence</h4>
+                                <p>Native iOS and Android applications with on-device processing, camera integration for instant metadata stripping, and offline support.</p>
+                                <span class="roadmap-tag">Q4 2025</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="margin-top: 16px;">
+                        <div class="chart-title">Roadmap Timeline</div>
+                        <div class="chart-wrapper" style="height: 140px;">
+                            <canvas id="roadmapChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <span>FILEX // PRODUCT PITCH DECK v1.0</span>
+            <span>REF: QLPS202405-001</span>
+            <span class="page-num">PAGE 04/04</span>
+        </div>
+    </div>
+
+    <script>
+        // SLIDE 2: File Support Bar Chart
+        const fsCtx = document.getElementById('fileSupportChart').getContext('2d');
+        new Chart(fsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['JPG', 'PNG', 'PDF', 'DOCX', 'XLSX', 'MP4', 'TIFF', 'SVG'],
+                datasets: [{
+                    label: 'Supported',
+                    data: [100, 100, 100, 100, 100, 100, 100, 100],
+                    backgroundColor: '#FF5722',
+                    borderColor: '#0A192F',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, max: 120, ticks: { font: { family: 'JetBrains Mono', size: 10 } } },
+                    x: { ticks: { font: { family: 'JetBrains Mono', size: 10 } } }
+                }
+            }
+        });
+
+        // SLIDE 3: Tech Stack Horizontal Bar Chart
+        const tsCtx = document.getElementById('techStackChart').getContext('2d');
+        new Chart(tsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Next.js', 'React', 'Tailwind', 'Supabase', 'Better-Auth', 'Drizzle', 'JSZip', 'Framer'],
+                datasets: [{
+                    label: 'Maturity Score',
+                    data: [95, 98, 92, 88, 85, 90, 87, 93],
+                    backgroundColor: ['#FF5722', '#0A192F', '#FF5722', '#0A192F', '#FF5722', '#0A192F', '#FF5722', '#0A192F'],
+                    borderColor: '#0A192F',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, max: 100, ticks: { font: { family: 'JetBrains Mono', size: 10 } } },
+                    y: { ticks: { font: { family: 'JetBrains Mono', size: 10 } } }
+                }
+            }
+        });
+
+        // SLIDE 4: Market Doughnut Chart
+        const mCtx = document.getElementById('marketChart').getContext('2d');
+        new Chart(mCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Privacy-Conscious Individuals', 'Corporate Teams', 'Developers & Researchers'],
+                datasets: [{
+                    data: [45, 35, 20],
+                    backgroundColor: ['#FF5722', '#0A192F', '#1E293B'],
+                    borderColor: '#FFFFFF',
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { family: 'JetBrains Mono', size: 10 }, padding: 12 }
+                    }
+                },
+                cutout: '55%'
+            }
+        });
+
+        // SLIDE 4: Roadmap Bar Chart
+        const rCtx = document.getElementById('roadmapChart').getContext('2d');
+        new Chart(rCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Enterprise API', 'Watson AI Expansion', 'Mobile Apps'],
+                datasets: [{
+                    label: 'Progress',
+                    data: [15, 10, 5],
+                    backgroundColor: ['#FF5722', '#0A192F', '#1E293B'],
+                    borderColor: '#FF5722',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, max: 100, ticks: { font: { family: 'JetBrains Mono', size: 10 } } },
+                    y: { ticks: { font: { family: 'JetBrains Mono', size: 10 } } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

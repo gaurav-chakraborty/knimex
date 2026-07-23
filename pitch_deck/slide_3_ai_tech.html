@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FileX Pitch Deck - Slide 3: AI & Tech Stack</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { width: 1280px; height: 720px; overflow: hidden; background: #FFFFFF; font-family: 'Inter', sans-serif; }
+        .slide { width: 1280px; height: 720px; position: relative; background: #FFFFFF; border: 20px solid #0A192F; overflow: hidden; }
+        .grid-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .grid-col { position: absolute; top: 0; height: 100%; width: 1px; background: rgba(10,25,47,0.1); }
+        .grid-row { position: absolute; left: 0; width: 100%; height: 1px; background: rgba(10,25,47,0.1); }
+        .crosshair-h { position: absolute; width: 10px; height: 1px; background: #FF5722; pointer-events: none; }
+        .crosshair-v { position: absolute; width: 1px; height: 10px; background: #FF5722; pointer-events: none; }
+        .header-bar { position: absolute; top: 30px; left: 80px; right: 80px; }
+        .header-bar h1 { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 28px; color: #0A192F; text-transform: uppercase; letter-spacing: 2px; }
+        .header-bar .subtitle { font-family: 'Inter', sans-serif; font-size: 16px; color: #1E293B; margin-top: 8px; opacity: 0.8; }
+        .content-area { position: absolute; top: 115px; left: 80px; right: 80px; bottom: 100px; }
+        .main-title { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 26px; color: #0A192F; text-transform: uppercase; margin-bottom: 20px; line-height: 1.3; }
+        .two-col { display: flex; gap: 30px; }
+        .col-left { flex: 1.1; }
+        .col-right { flex: 0.9; }
+        .ai-section { background: linear-gradient(135deg, #0A192F 0%, #1E293B 100%); border-radius: 6px; padding: 20px; margin-bottom: 16px; }
+        .ai-section .ibm-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #FF5722; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; background: rgba(255,87,34,0.15); display: inline-block; padding: 4px 10px; border-radius: 3px; border: 1px solid #FF5722; }
+        .ai-section h3 { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; color: #FFFFFF; margin-bottom: 10px; }
+        .ai-section p { font-family: 'Inter', sans-serif; font-size: 14px; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 12px; }
+        .ai-features { display: flex; gap: 12px; }
+        .ai-feature { flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,87,34,0.3); border-radius: 4px; padding: 12px; text-align: center; }
+        .ai-feature i { color: #FF5722; font-size: 20px; margin-bottom: 6px; }
+        .ai-feature span { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tech-stack { background: #F8FAFC; border: 1px solid rgba(10,25,47,0.1); border-radius: 4px; padding: 16px; }
+        .tech-stack .section-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #FF5722; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; background: #0A192F; display: inline-block; padding: 3px 8px; border-radius: 2px; }
+        .tech-row { margin-bottom: 12px; }
+        .tech-row .row-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #0A192F; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; opacity: 0.7; }
+        .tech-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .tech-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0A192F; background: #E2E8F0; padding: 4px 10px; border-radius: 3px; border-left: 3px solid #FF5722; }
+        .chart-container { background: #F8FAFC; border: 1px solid rgba(10,25,47,0.1); border-radius: 4px; padding: 14px; margin-top: 12px; }
+        .chart-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0A192F; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+        .chart-wrapper { position: relative; height: 180px; }
+        .accent-line { position: absolute; top: 30px; right: 80px; width: 60px; height: 4px; background: #FF5722; border-radius: 2px; }
+        .footer { position: absolute; bottom: 40px; left: 80px; right: 80px; border-top: 1px solid #0A192F; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .footer span { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #0A192F; }
+        .footer .page-num { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #FF5722; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <!-- Grid Overlay -->
+        <div class="grid-overlay">
+            <div class="grid-col" style="left: 10.67%;"></div>
+            <div class="grid-col" style="left: 21.33%;"></div>
+            <div class="grid-col" style="left: 32%;"></div>
+            <div class="grid-col" style="left: 42.67%;"></div>
+            <div class="grid-col" style="left: 53.33%;"></div>
+            <div class="grid-col" style="left: 64%;"></div>
+            <div class="grid-col" style="left: 74.67%;"></div>
+            <div class="grid-col" style="left: 85.33%;"></div>
+            <div class="grid-col" style="left: 96%;"></div>
+            <div class="grid-row" style="top: 12.5%;"></div>
+            <div class="grid-row" style="top: 25%;"></div>
+            <div class="grid-row" style="top: 37.5%;"></div>
+            <div class="grid-row" style="top: 50%;"></div>
+            <div class="grid-row" style="top: 62.5%;"></div>
+            <div class="grid-row" style="top: 75%;"></div>
+            <div class="grid-row" style="top: 87.5%;"></div>
+        </div>
+        <!-- Crosshairs -->
+        <div class="crosshair-h" style="top: 25%; left: 53.33%;"></div>
+        <div class="crosshair-v" style="top: 25%; left: 53.33%;"></div>
+        <div class="crosshair-h" style="top: 50%; left: 42.67%;"></div>
+        <div class="crosshair-v" style="top: 50%; left: 42.67%;"></div>
+        <div class="crosshair-h" style="top: 75%; left: 21.33%;"></div>
+        <div class="crosshair-v" style="top: 75%; left: 21.33%;"></div>
+        <!-- Accent Line -->
+        <div class="accent-line"></div>
+        <!-- Header -->
+        <div class="header-bar">
+            <h1><i class="fas fa-shield-alt" style="color: #FF5722; margin-right: 10px;"></i>FileX</h1>
+            <div class="subtitle">Secure Metadata Management Platform</div>
+        </div>
+        <!-- Content -->
+        <div class="content-area">
+            <h2 class="main-title">AI-Powered Protection and a Professional Tech Stack</h2>
+            <div class="two-col">
+                <div class="col-left">
+                    <div class="ai-section">
+                        <div class="ibm-badge"><i class="fas fa-brain"></i>&nbsp; IBM Watson Powered</div>
+                        <h3>Intelligent Risk Assessment Module</h3>
+                        <p>During development, IBM Watson's AI toolkit was used for prototyping the AI-powered risk assessment module. This integration helped refine the logic for identifying and categorizing sensitive information within file metadata, contributing to the robust privacy protection mechanisms now embedded in FileX.</p>
+                        <div class="ai-features">
+                            <div class="ai-feature">
+                                <i class="fas fa-search"></i>
+                                <span>Identify Hidden Risks</span>
+                            </div>
+                            <div class="ai-feature">
+                                <i class="fas fa-tags"></i>
+                                <span>Categorize Data</span>
+                            </div>
+                            <div class="ai-feature">
+                                <i class="fas fa-lightbulb"></i>
+                                <span>Actionable Tips</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Technology Stack Components</div>
+                        <div class="chart-wrapper">
+                            <canvas id="techStackChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-right">
+                    <div class="tech-stack">
+                        <div class="section-label">TECH STACK</div>
+                        <div class="tech-row">
+                            <div class="row-label">Frontend</div>
+                            <div class="tech-tags">
+                                <span class="tech-tag">Next.js 15</span>
+                                <span class="tech-tag">React 19</span>
+                                <span class="tech-tag">TailwindCSS</span>
+                            </div>
+                        </div>
+                        <div class="tech-row">
+                            <div class="row-label">Backend</div>
+                            <div class="tech-tags">
+                                <span class="tech-tag">Supabase PostgreSQL</span>
+                                <span class="tech-tag">Better-Auth</span>
+                                <span class="tech-tag">Drizzle ORM</span>
+                            </div>
+                        </div>
+                        <div class="tech-row">
+                            <div class="row-label">Client Libraries</div>
+                            <div class="tech-tags">
+                                <span class="tech-tag">JSZip</span>
+                                <span class="tech-tag">jspdf</span>
+                                <span class="tech-tag">framer-motion</span>
+                            </div>
+                        </div>
+                        <div class="tech-row" style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(10,25,47,0.1);">
+                            <div class="row-label">AI Integration</div>
+                            <div class="tech-tags">
+                                <span class="tech-tag">IBM Watson</span>
+                                <span class="tech-tag">NLP Risk Scoring</span>
+                                <span class="tech-tag">Pattern Detection</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer -->
+        <div class="footer">
+            <span>FILEX // PRODUCT PITCH DECK v1.0</span>
+            <span>REF: QLPS202405-001</span>
+            <span class="page-num">PAGE 03/04</span>
+        </div>
+    </div>
+    <script>
+        const ctx = document.getElementById('techStackChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Next.js', 'React', 'Tailwind', 'Supabase', 'Better-Auth', 'Drizzle', 'JSZip', 'Framer'],
+                datasets: [{
+                    label: 'Maturity Score',
+                    data: [95, 98, 92, 88, 85, 90, 87, 93],
+                    backgroundColor: ['#FF5722', '#0A192F', '#FF5722', '#0A192F', '#FF5722', '#0A192F', '#FF5722', '#0A192F'],
+                    borderColor: '#0A192F',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, max: 100, ticks: { font: { family: 'JetBrains Mono', size: 10 } } },
+                    y: { ticks: { font: { family: 'JetBrains Mono', size: 10 } } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
