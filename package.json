@@ -1,6 +1,23 @@
 {
-  "name": "app",
-  "version": "0.1.0",
+  "name": "filex",
+  "version": "1.0.0",
+  "description": "Secure, client-side metadata management platform for digital privacy, built with Next.js and enhanced by IBM Watson insights.",
+  "author": "Gaurav Chakraborty",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gaurav-chakraborty/filex.git"
+  },
+  "keywords": [
+    "metadata",
+    "privacy",
+    "security",
+    "nextjs",
+    "react",
+    "exif",
+    "sanitizer",
+    "ibm-watson"
+  ],
   "private": true,
   "scripts": {
     "dev": "next dev",

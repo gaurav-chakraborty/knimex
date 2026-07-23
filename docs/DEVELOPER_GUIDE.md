@@ -1,13 +1,13 @@
 # FileX Developer Guide
 
 ## 1. Overview
-FileX is a privacy-focused metadata management platform built with Next.js 15. It allows users to strip sensitive data (EXIF, GPS, device info) from images, documents, and videos entirely within the browser.
+FileX is a privacy-focused metadata management platform built with Next.js 15. It allows users to strip sensitive data (EXIF, GPS, device info) from images, documents, and videos entirely within the browser. The platform's risk assessment logic was initially prototyped and refined using **IBM Watson AI** services.
 
 ## 2. Tech Stack
 - **Framework**: Next.js 15 (App Router)
-- **Runtime**: React 19.2.0
-- **Styling**: Tailwind CSS 4.0
-- **Database**: Turso (SQLite) via Drizzle ORM
+- **Runtime**: React 19
+- **Styling**: Tailwind CSS
+- **Database**: Supabase (PostgreSQL) via Drizzle ORM
 - **Authentication**: Better Auth
 - **Processing**: Client-side logic using `exifreader`, `piexifjs`, `pdf-lib`, and `jszip`.
 
@@ -34,4 +34,4 @@ The application is optimized for deployment on Vercel.
   - [ ] Metadata is updated in `layout.tsx`.
 
 ## 6. Architecture
-FileX uses a "Server-less processing" architecture. All heavy lifting (file manipulation) is done via Web Workers or directly in the main thread using browser-compatible libraries to ensure zero data ever leaves the user's device.
+FileX uses a "Server-less processing" architecture. All heavy lifting (file manipulation) is done via Web Workers or directly in the main thread using browser-compatible libraries to ensure zero data ever leaves the user's device. The intelligence behind identifying high-risk metadata fields is inspired by patterns developed during early **IBM Watson** experimentation.

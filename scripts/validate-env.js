@@ -5,28 +5,39 @@ const path = require('path');
 
 // Load environment variables from .env file
 const envPath = path.join(__dirname, '..', '.env');
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, 'utf8');
-  envContent.split('\n').forEach(line => {
-    const trimmed = line.trim();
-    if (trimmed && !trimmed.startsWith('#')) {
-      const [key, ...valueParts] = trimmed.split('=');
-      if (key && valueParts.length > 0) {
-        process.env[key.trim()] = valueParts.join('=').trim();
+const envLocalPath = path.join(__dirname, '..', '.env.local');
+
+function loadEnv(filePath) {
+  if (fs.existsSync(filePath)) {
+    const envContent = fs.readFileSync(filePath, 'utf8');
+    envContent.split('\n').forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#')) {
+        const [key, ...valueParts] = trimmed.split('=');
+        if (key && valueParts.length > 0) {
+          process.env[key.trim()] = valueParts.join('=').trim();
+        }
       }
-    }
-  });
+    });
+  }
 }
+
+loadEnv(envPath);
+loadEnv(envLocalPath);
 
 const required = [
   'NEXT_PUBLIC_SUPABASE_URL',
+  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
-  'CRON_SECRET',
-  'BETTER_AUTH_SECRET'
+  'DATABASE_URL',
+  'BETTER_AUTH_SECRET',
+  'BETTER_AUTH_URL',
+  'CRON_SECRET'
 ];
 
 const optional = [
-  'NEXT_PUBLIC_SITE_URL'
+  'NEXT_PUBLIC_SITE_URL',
+  'NODE_ENV'
 ];
 
 console.log('🔍 Validating Environment Variables...\n');
@@ -44,6 +55,9 @@ for (const key of required) {
     // Validate format
     if (key === 'NEXT_PUBLIC_SUPABASE_URL' && !process.env[key].startsWith('https://')) {
       warnings.push(`${key} should start with https://`);
+    }
+    if (key === 'DATABASE_URL' && !process.env[key].startsWith('postgresql://')) {
+      warnings.push(`${key} should start with postgresql://`);
     }
     if (key === 'CRON_SECRET' && process.env[key].length < 32) {
       warnings.push(`${key} should be at least 32 characters`);
