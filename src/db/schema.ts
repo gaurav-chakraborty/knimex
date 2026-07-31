@@ -8,6 +8,11 @@ export const user = pgTable("user", {
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
   role: text("role").notNull().default("user"),
+  plan: text("plan").notNull().default("free"),
+  subscriptionStatus: text("subscription_status").notNull().default("inactive"),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  currentPeriodEnd: timestamp("current_period_end"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -75,4 +80,14 @@ export const feedbackSubmissions = pgTable('feedback_submissions', {
   category: text('category'),
   status: text('status').notNull().default('new'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Daily Usage Tracking (Postgres) — powers free-plan rate limiting
+export const usageRecords = pgTable('usage_records', {
+  id: serial('id').primaryKey(),
+  identifier: text('identifier').notNull(), // userId when signed in, otherwise "ip:<address>"
+  usageDate: text('usage_date').notNull(), // YYYY-MM-DD (UTC)
+  filesProcessed: integer('files_processed').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

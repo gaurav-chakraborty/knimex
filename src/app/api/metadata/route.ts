@@ -6,6 +6,32 @@ import {
   type MetadataRemovalOptions,
   type MetadataCopyOptions,
 } from '@/lib/metadata-engine';
+import { checkAndConsumeUsage } from '@/lib/usage';
+
+/**
+ * Enforces the caller's daily plan limit for value-producing actions
+ * (remove/copy). Fails open on unexpected errors so a DB hiccup never
+ * blocks core sanitization functionality.
+ */
+async function enforceUsageLimit(request: NextRequest, fileCount: number) {
+  try {
+    const result = await checkAndConsumeUsage(request, fileCount);
+    if (!result.allowed) {
+      return NextResponse.json(
+        {
+          error: `Daily limit reached (${result.limit} files/day on the ${result.plan} plan). Upgrade to Pro for unlimited processing.`,
+          plan: result.plan,
+          limit: result.limit,
+          used: result.used,
+        },
+        { status: 402 }
+      );
+    }
+  } catch (error) {
+    console.error('Usage check failed, allowing request:', error);
+  }
+  return null;
+}
 
 /**
  * POST /api/metadata/extract
@@ -19,9 +45,9 @@ export async function POST(request: NextRequest) {
     if (action === 'extract') {
       return handleExtract(formData);
     } else if (action === 'remove') {
-      return handleRemove(formData);
+      return handleRemove(request, formData);
     } else if (action === 'copy') {
-      return handleCopy(formData);
+      return handleCopy(request, formData);
     }
 
     return NextResponse.json(
@@ -85,7 +111,7 @@ async function handleExtract(formData: FormData) {
 /**
  * Remove/replace metadata from files
  */
-async function handleRemove(formData: FormData) {
+async function handleRemove(request: NextRequest, formData: FormData) {
   const files = formData.getAll('files') as File[];
   const removeFieldsStr = formData.get('removeFields') as string;
   const replaceFieldsStr = formData.get('replaceFields') as string;
@@ -104,6 +130,9 @@ async function handleRemove(formData: FormData) {
       { status: 400 }
     );
   }
+
+  const limitResponse = await enforceUsageLimit(request, files.length);
+  if (limitResponse) return limitResponse;
 
   try {
     const removeFields = removeFieldsStr ? JSON.parse(removeFieldsStr) : [];
@@ -151,7 +180,7 @@ async function handleRemove(formData: FormData) {
 /**
  * Copy metadata from source file to target file
  */
-async function handleCopy(formData: FormData) {
+async function handleCopy(request: NextRequest, formData: FormData) {
   const sourceFile = formData.get('sourceFile') as File;
   const targetFiles = formData.getAll('targetFiles') as File[];
   const fieldsToKeepStr = formData.get('fieldsToKeep') as string;
@@ -177,6 +206,9 @@ async function handleCopy(formData: FormData) {
       { status: 400 }
     );
   }
+
+  const limitResponse = await enforceUsageLimit(request, targetFiles.length);
+  if (limitResponse) return limitResponse;
 
   try {
     const sourceBuffer = Buffer.from(await sourceFile.arrayBuffer());

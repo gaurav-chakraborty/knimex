@@ -23,6 +23,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import MobileNav from "@/components/MobileNav";
 import { authClient, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -138,7 +139,17 @@ const MOCK_RISKS: DetectedRisk[] = [
 export default function DownloadCenter() {
   const { data: session } = useSession();
   const router = useRouter();
-  
+  const [userPlan, setUserPlan] = useState<string>("free");
+
+  useEffect(() => {
+    if (!session?.user) return;
+    const token = localStorage.getItem("bearer_token");
+    fetch("/api/billing/status", { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data?.plan && setUserPlan(data.plan))
+      .catch(() => {});
+  }, [session]);
+
   const [selectedTemplate, setSelectedTemplate] = useState<string>("custom");
   const [privacyLevel, setPrivacyLevel] = useState(75);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -173,8 +184,24 @@ export default function DownloadCenter() {
   ];
 
   const startTour = () => setTourStep(0);
-  const nextStep = () => setTourStep(prev => prev !== null && prev < tourSteps.length - 1 ? prev + 1 : null);
-  const closeTour = () => setTourStep(null);
+  const closeTour = () => {
+    setTourStep(null);
+    localStorage.setItem("filex_tour_seen", "true");
+  };
+  const nextStep = () =>
+    setTourStep(prev => {
+      if (prev !== null && prev < tourSteps.length - 1) return prev + 1;
+      localStorage.setItem("filex_tour_seen", "true");
+      return null;
+    });
+
+  // Auto-launch the guided tour for first-time visitors so the product is
+  // discoverable without them having to find the "Guided Tour" button.
+  useEffect(() => {
+    if (localStorage.getItem("filex_tour_seen")) return;
+    const timer = setTimeout(() => setTourStep(0), 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Live Counter Animation Effect
   useEffect(() => {
@@ -377,10 +404,12 @@ export default function DownloadCenter() {
               <ThemeSwitcher />
               {session ? (
                 <div className="flex items-center gap-4">
-                  <div className="flex flex-col items-end">
-                    <span className="text-xs font-bold">{session.user.name}</span>
-                    <Badge className="bg-filex-blue/10 text-filex-blue border-filex-blue/20 text-[9px] py-0">PRO</Badge>
-                  </div>
+                  <Link href="/account" className="flex flex-col items-end group">
+                    <span className="text-xs font-bold group-hover:text-filex-blue transition-colors">{session.user.name}</span>
+                    <Badge className="bg-filex-blue/10 text-filex-blue border-filex-blue/20 text-[9px] py-0 uppercase">
+                      {userPlan}
+                    </Badge>
+                  </Link>
                   <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/5" onClick={() => authClient.signOut()}>
                     <LogOut className="w-5 h-5 text-slate-400" />
                   </Button>
@@ -392,6 +421,19 @@ export default function DownloadCenter() {
                   </Button>
                 </Link>
               )}
+              <MobileNav
+                links={[
+                  { href: "/pricing", label: "Pricing" },
+                  { href: session ? "/account" : "/login", label: session ? "My Account" : "Sign In" },
+                  { href: "/contact", label: "Contact" },
+                ]}
+                footer={
+                  <Button variant="ghost" size="sm" onClick={startTour} className="w-full justify-start text-filex-blue hover:text-filex-blue-deep hover:bg-filex-blue/10 gap-2">
+                    <HelpCircle className="w-4 h-4" />
+                    Guided Tour
+                  </Button>
+                }
+              />
             </div>
           </header>
 

@@ -13,6 +13,8 @@ FileX is a cutting-edge, client-side web application designed to empower users w
 *   **Customizable Templates**: Apply predefined privacy templates (e.g., Student Submission, Job Application, Social Media Upload) or create custom configurations for tailored metadata management.
 *   **Secure Export Options**: Download cleaned files, generate detailed privacy logs, export metadata snapshots (JSON), create audit reports (HTML), and obtain PDF certificates of privacy verification.
 *   **User Authentication**: Secure user management and authentication powered by Better-Auth and Supabase PostgreSQL.
+*   **Subscriptions & Billing**: Stripe-backed Free/Pro/Enterprise plans with checkout, a self-service billing portal, and an account dashboard at `/account`.
+*   **Usage Enforcement**: Free-plan daily processing limits are tracked and enforced server-side, with graceful upgrade prompts when a limit is hit.
 
 ## Technology Stack
 

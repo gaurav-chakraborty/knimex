@@ -4,9 +4,13 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Shield, Zap, Lock, Globe, HardDrive, RefreshCw, HelpCircle, ArrowRight, Star, CreditCard, Gift } from "lucide-react";
+import { Check, Shield, Zap, Lock, Globe, HardDrive, RefreshCw, HelpCircle, ArrowRight, Star, CreditCard, Gift, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useSession } from "@/lib/auth-client";
+import { toast } from "sonner";
+import MobileNav from "@/components/MobileNav";
 
 const PLANS = [
   {
@@ -40,7 +44,8 @@ const PLANS = [
     highlight: true,
     buttonText: "Get Pro Access",
     buttonVariant: "default" as const,
-    href: "/register?plan=pro"
+    href: "/register?plan=pro",
+    planKey: "pro" as const
   },
   {
     name: "Enterprise",
@@ -61,7 +66,51 @@ const PLANS = [
   ];
 
 export default function PricingPage() {
+  return (
+    <Suspense fallback={null}>
+      <PricingPageContent />
+    </Suspense>
+  );
+}
+
+function PricingPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("checkout") === "cancelled") {
+      toast.info("Checkout cancelled — no changes were made to your plan.");
+    }
+  }, [searchParams]);
+
+  const handleGetPro = async () => {
+    if (!session?.user) {
+      router.push("/register?plan=pro");
+      return;
+    }
+
+    const token = localStorage.getItem("bearer_token");
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ plan: "pro" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error(data.error || "Checkout is unavailable right now.");
+      }
+    } catch {
+      toast.error("Checkout is unavailable right now.");
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#020617] text-white selection:bg-purple-500/30 font-sans antialiased overflow-x-hidden">
@@ -88,11 +137,18 @@ export default function PricingPage() {
               <Link href="#" className="hover:text-white transition-colors">Documentation</Link>
             </nav>
             <div className="h-6 w-px bg-white/10 hidden md:block" />
-            <Link href="/login">
+            <Link href={session?.user ? "/account" : "/login"} className="hidden sm:block">
               <Button className="bg-white text-black hover:bg-slate-200 font-bold rounded-xl px-6">
-                Sign In
+                {session?.user ? "My Account" : "Sign In"}
               </Button>
             </Link>
+            <MobileNav
+              links={[
+                { href: "/", label: "Back to App" },
+                { href: session?.user ? "/account" : "/login", label: session?.user ? "My Account" : "Sign In" },
+                { href: "/contact", label: "Contact" },
+              ]}
+            />
           </div>
         </header>
 
@@ -149,17 +205,37 @@ export default function PricingPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link href={plan.href} className="block w-full">
-                    <Button 
-                      variant={plan.buttonVariant} 
+                  {(plan as any).planKey === "pro" ? (
+                    <Button
+                      onClick={handleGetPro}
+                      disabled={checkoutLoading}
+                      variant={plan.buttonVariant}
                       className={`w-full h-14 rounded-2xl font-black text-lg shadow-xl group ${
                         plan.highlight ? 'bg-white text-black hover:bg-slate-200' : 'border-white/10 hover:bg-white/5'
                       }`}
                     >
-                      {plan.buttonText}
-                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                      {checkoutLoading ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <>
+                          {plan.buttonText}
+                          <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
                     </Button>
-                  </Link>
+                  ) : (
+                    <Link href={plan.href} className="block w-full">
+                      <Button
+                        variant={plan.buttonVariant}
+                        className={`w-full h-14 rounded-2xl font-black text-lg shadow-xl group ${
+                          plan.highlight ? 'bg-white text-black hover:bg-slate-200' : 'border-white/10 hover:bg-white/5'
+                        }`}
+                      >
+                        {plan.buttonText}
+                        <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </Link>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
