@@ -53,10 +53,24 @@ interface DetectedRisk {
   description: string;
   suggestion: string;
   isChecked: boolean;
-  category: "camera" | "location" | "identity" | "org" | "software" | "time" | "technical";
+  category: string;
   originalValue: string;
   cleanedValue: string;
 }
+
+interface ExtractedMetadataField {
+  key: string;
+  value: string | string[];
+  category: string;
+  riskLevel: "high" | "medium" | "low";
+  description: string;
+}
+
+const SUGGESTION_BY_RISK: Record<"high" | "medium" | "low", string> = {
+  high: "Recommended: Remove immediately",
+  medium: "Recommended: Remove before sharing",
+  low: "Optional: Safe to keep or remove",
+};
 
 const TEMPLATES: Record<string, Template> = {
   "student": {
@@ -91,51 +105,6 @@ const TEMPLATES: Record<string, Template> = {
   }
 };
 
-const MOCK_RISKS: DetectedRisk[] = [
-  { 
-    id: "gps", type: "high", category: "location", 
-    label: "GPS coordinates found", description: "Lat: 40.7128, Lon: 74.0060", 
-    suggestion: "Recommended: Remove location data", isChecked: true,
-    originalValue: "40.7128° N, 74.0060° W", cleanedValue: "[Removed]"
-  },
-  { 
-    id: "camera_serial", type: "medium", category: "camera",
-    label: "Camera serial number detected", description: "Unique ID: CN-9928X-B", 
-    suggestion: "Recommended: Strip device information", isChecked: true,
-    originalValue: "Canon EOS 5D Mark IV", cleanedValue: "[Removed]"
-  },
-  { 
-    id: "software", type: "medium", category: "software",
-    label: "Editing software: Adobe Photoshop 2024", description: "Internal Build v25.1", 
-    suggestion: "Recommended: Remove software metadata", isChecked: true,
-    originalValue: "Adobe Photoshop 2024", cleanedValue: "[Removed]"
-  },
-  { 
-    id: "author", type: "high", category: "identity",
-    label: "Author: John Smith", description: "Linked to OS User Account", 
-    suggestion: "Recommended: Replace with your name", isChecked: true,
-    originalValue: "John Smith", cleanedValue: "Anonymous User"
-  },
-  { 
-    id: "company", type: "medium", category: "org",
-    label: "Company: ABC Corp", description: "Marketing Department", 
-    suggestion: "Recommended: Clear organization field", isChecked: true,
-    originalValue: "ABC Corp", cleanedValue: "N/A"
-  },
-  { 
-    id: "date", type: "low", category: "time",
-    label: "Creation date: 3 years ago", description: "Created: 2023-05-15 14:32:18", 
-    suggestion: "Optional: Update to recent date", isChecked: false,
-    originalValue: "2023-05-15 14:32:18", cleanedValue: "2025-01-01"
-  },
-  { 
-    id: "res", type: "safe", category: "technical",
-    label: "Image resolution: 1920x1080", description: "Aspect ratio 16:9", 
-    suggestion: "Keep resolution metadata", isChecked: false,
-    originalValue: "1920x1080", cleanedValue: "1920x1080"
-  }
-];
-
 export default function DownloadCenter() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -154,7 +123,7 @@ export default function DownloadCenter() {
   const [privacyLevel, setPrivacyLevel] = useState(75);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [risks, setRisks] = useState<DetectedRisk[]>(MOCK_RISKS);
+  const [risks, setRisks] = useState<DetectedRisk[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [processedCount, setProcessedCount] = useState(12842);
 
@@ -242,15 +211,60 @@ export default function DownloadCenter() {
     generateCertificate: "240 KB"
   });
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     setIsProcessing(true);
     setUploadedFiles(acceptedFiles);
-    
-    // Simulate complex AI processing
-    setTimeout(() => {
+    setRisks([]);
+
+    try {
+      const formData = new FormData();
+      formData.append("action", "extract");
+      acceptedFiles.forEach((file) => formData.append("files", file));
+
+      const res = await fetch("/api/metadata", { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Failed to analyze files.");
+        return;
+      }
+
+      const detected = new Map<string, DetectedRisk>();
+      for (const fileResult of data.files as Array<{ fields: ExtractedMetadataField[] }>) {
+        for (const field of fileResult.fields) {
+          if (detected.has(field.key)) continue;
+          const value = Array.isArray(field.value) ? field.value.join(", ") : field.value;
+          detected.set(field.key, {
+            id: field.key,
+            type: field.riskLevel,
+            category: field.category,
+            label: field.description,
+            description: value,
+            suggestion: SUGGESTION_BY_RISK[field.riskLevel],
+            isChecked: field.riskLevel !== "low",
+            originalValue: value,
+            cleanedValue: "[Removed]",
+          });
+        }
+      }
+
+      const riskList = Array.from(detected.values());
+      setRisks(riskList);
+
+      const highCount = riskList.filter((r) => r.type === "high").length;
+      if (riskList.length === 0) {
+        toast.success("No risky metadata detected — your files look clean.");
+      } else if (highCount > 0) {
+        toast.success(`${acceptedFiles.length} file(s) analyzed! ${highCount} critical privacy risk(s) detected.`);
+      } else {
+        toast.success(`${acceptedFiles.length} file(s) analyzed! ${riskList.length} metadata field(s) found.`);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to analyze files. Please try again.");
+    } finally {
       setIsProcessing(false);
-      toast.success(`${acceptedFiles.length} file(s) analyzed! Critical privacy risks detected.`);
-    }, 2000);
+    }
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
@@ -277,7 +291,10 @@ export default function DownloadCenter() {
     const totalRisks = risks.filter(r => r.type !== 'safe').length;
     const cleanedFields = risks.filter(r => r.isChecked).length;
     const preservedFields = risks.filter(r => !r.isChecked).length;
-    return { resolved, totalRisks, cleanedFields, preservedFields };
+    // No detected risks means nothing to protect against — that's a clean
+    // file, not a 0% score.
+    const score = totalRisks === 0 ? 100 : Math.round((resolved / totalRisks) * 100);
+    return { resolved, totalRisks, cleanedFields, preservedFields, score };
   }, [risks]);
 
   const handleDownload = async () => {
@@ -294,8 +311,40 @@ export default function DownloadCenter() {
 
     setIsProcessing(true);
     const zip = new JSZip();
-    
+
     try {
+      // Strip metadata server-side for every file the user checked off,
+      // subject to the plan's daily limit (enforced in /api/metadata).
+      let cleanedByFileName: Record<string, string> | null = null;
+      if (exportOptions.downloadCleaned) {
+        const removeFields = risks.filter((r) => r.isChecked).map((r) => r.id);
+        const cleanFormData = new FormData();
+        cleanFormData.append("action", "remove");
+        uploadedFiles.forEach((file) => cleanFormData.append("files", file));
+        cleanFormData.append("removeFields", JSON.stringify(removeFields));
+        cleanFormData.append("replaceFields", JSON.stringify({}));
+        cleanFormData.append("removeSignature", "false");
+
+        const cleanRes = await fetch("/api/metadata", { method: "POST", body: cleanFormData });
+        const cleanData = await cleanRes.json();
+
+        if (!cleanRes.ok) {
+          if (cleanRes.status === 402) {
+            toast.error(cleanData.error || "Daily processing limit reached.");
+            router.push("/pricing");
+          } else {
+            toast.error(cleanData.error || "Failed to clean files.");
+          }
+          setIsProcessing(false);
+          return;
+        }
+
+        cleanedByFileName = {};
+        for (const cleaned of cleanData.files as Array<{ fileName: string; data: string }>) {
+          cleanedByFileName[cleaned.fileName] = cleaned.data;
+        }
+      }
+
       // Process each file
       for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i];
@@ -303,13 +352,18 @@ export default function DownloadCenter() {
         let fileName = baseName;
         if (namingOptions.addSuffix) fileName += "_cleaned";
         if (namingOptions.addTimestamp) fileName += `_${Date.now()}`;
-        
+
         const extension = file.name.split('.').pop();
         const fullFileName = `${fileName}.${extension}`;
 
-        // 1. Cleaned File (Real Logic Simulation: In a real app we'd strip EXIF here)
+        // 1. Cleaned File — actual metadata-stripped bytes from the engine
         if (exportOptions.downloadCleaned) {
-          zip.file(fullFileName, file);
+          const cleanedBase64 = cleanedByFileName?.[file.name];
+          if (cleanedBase64) {
+            zip.file(fullFileName, cleanedBase64, { base64: true });
+          } else {
+            zip.file(fullFileName, file);
+          }
         }
 
         // 2. Generate Log
@@ -340,7 +394,7 @@ export default function DownloadCenter() {
               <body>
                 <h1>Privacy Audit Report</h1>
                 <h2>File: ${file.name}</h2>
-                <p>Privacy Score: ${Math.round((stats.resolved / (stats.totalRisks || 1)) * 100)}%</p>
+                <p>Privacy Score: ${stats.score}%</p>
                 <ul>${risks.map(r => `<li>${r.label}: ${r.isChecked ? '✅ Secure' : '⚠️ Exposed'}</li>`).join('')}</ul>
               </body>
             </html>
@@ -610,11 +664,24 @@ export default function DownloadCenter() {
                         <Sparkles className="w-6 h-6 text-yellow-500" />
                         AI Risk Assessment
                       </h2>
-                      <Button variant="outline" size="sm" onClick={applyAllRecommendations} className="border-filex-blue/30 text-filex-blue hover:bg-filex-blue/10 text-xs rounded-xl">
+                      <Button variant="outline" size="sm" onClick={applyAllRecommendations} disabled={risks.length === 0} className="border-filex-blue/30 text-filex-blue hover:bg-filex-blue/10 text-xs rounded-xl disabled:opacity-30">
                         Auto-Secure All
                       </Button>
                     </div>
 
+                    {!isProcessing && risks.length === 0 ? (
+                      <Card className="bg-emerald-500/5 border-emerald-500/20 rounded-2xl">
+                        <CardContent className="p-6 flex items-center gap-4">
+                          <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+                            <CheckCircle2 className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-sm">No risky metadata detected</h4>
+                            <p className="text-xs text-slate-400">These files look clean — you can still proceed to export them securely.</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {risks.map(risk => (
                         <Card key={risk.id} className={`bg-[#0f172a]/40 border-white/5 backdrop-blur-md rounded-2xl group hover:border-white/10 transition-all ${!risk.isChecked ? 'opacity-70' : ''}`}>
@@ -642,6 +709,7 @@ export default function DownloadCenter() {
                         </Card>
                       ))}
                     </div>
+                    )}
                   </motion.section>
                 )}
               </AnimatePresence>
@@ -789,7 +857,7 @@ export default function DownloadCenter() {
                       <div className="p-6 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-between">
                         <div className="space-y-1">
                           <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Privacy Protection Score</p>
-                          <p className="text-4xl font-black">{Math.round((stats.resolved / (stats.totalRisks || 1)) * 100)}<span className="text-xl text-slate-500">%</span></p>
+                          <p className="text-4xl font-black">{stats.score}<span className="text-xl text-slate-500">%</span></p>
                         </div>
                         <div className="w-16 h-16 rounded-full bg-filex-gradient flex items-center justify-center shadow-lg shadow-filex-blue/20">
                           <ShieldCheck className="w-8 h-8 text-white" />

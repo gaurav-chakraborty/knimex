@@ -25,6 +25,8 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "security-check": "bash scripts/security-check.sh",
     "validate-env": "node scripts/validate-env.js",
     "test-local": "node scripts/test-deployment.js localhost:3000",
@@ -123,6 +125,7 @@
     "react-syntax-highlighter": "^16.1.0",
     "react-wrap-balancer": "^1.1.1",
     "recharts": "^2.14.1",
+    "resend": "^6.18.1",
     "simplex-noise": "^4.0.3",
     "sonner": "^1.7.1",
     "stripe": "^17.4.0",
@@ -146,8 +149,11 @@
     "@types/react-responsive-masonry": "^2.7.0",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/three": "^0.171.0",
+    "@vitejs/plugin-react": "^6.0.5",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.3.6",
-    "typescript": "5.7.2"
+    "typescript": "5.7.2",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.10"
   }
 }

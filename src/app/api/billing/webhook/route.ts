@@ -4,6 +4,7 @@ import Stripe from 'stripe';
 import { db } from '@/db';
 import { user } from '@/db/schema';
 import { getStripe, isBillingConfigured } from '@/lib/stripe';
+import { sendUpgradeConfirmationEmail, sendSubscriptionCanceledEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   if (!isBillingConfigured()) {
@@ -47,6 +48,11 @@ export async function POST(request: NextRequest) {
               updatedAt: new Date(),
             })
             .where(eq(user.id, userId));
+
+          const [row] = await db.select({ email: user.email }).from(user).where(eq(user.id, userId)).limit(1);
+          if (row?.email) {
+            sendUpgradeConfirmationEmail(row.email, plan).catch(() => {});
+          }
         }
         break;
       }
@@ -71,6 +77,13 @@ export async function POST(request: NextRequest) {
             updatedAt: new Date(),
           })
           .where(eq(user.id, userId));
+
+        if (event.type === 'customer.subscription.deleted' || !isActive) {
+          const [row] = await db.select({ email: user.email }).from(user).where(eq(user.id, userId)).limit(1);
+          if (row?.email) {
+            sendSubscriptionCanceledEmail(row.email).catch(() => {});
+          }
+        }
         break;
       }
 

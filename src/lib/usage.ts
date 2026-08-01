@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { usageRecords, user } from '@/db/schema';
 import { auth } from '@/lib/auth';
 import { PLAN_LIMITS } from '@/lib/stripe';
+import { sendUsageLimitReachedEmail } from '@/lib/email';
 
 function todayUTC(): string {
   return new Date().toISOString().slice(0, 10);
@@ -33,6 +34,7 @@ export async function checkAndConsumeUsage(
   filesRequested: number
 ): Promise<UsageCheckResult> {
   let userId: string | null = null;
+  let userEmail: string | null = null;
   let plan = 'free';
 
   try {
@@ -40,17 +42,21 @@ export async function checkAndConsumeUsage(
     if (session?.user) {
       userId = session.user.id;
       const [row] = await db
-        .select({ plan: user.plan })
+        .select({ plan: user.plan, email: user.email })
         .from(user)
         .where(eq(user.id, userId))
         .limit(1);
       if (row?.plan) plan = row.plan;
+      userEmail = row?.email ?? null;
     }
   } catch {
     // Unauthenticated request — treat as free/anonymous.
   }
 
-  const limit = PLAN_LIMITS[plan]?.filesPerDay ?? PLAN_LIMITS.free.filesPerDay;
+  // `?? PLAN_LIMITS.free.filesPerDay` here would be wrong: filesPerDay is
+  // legitimately `null` for unlimited plans, and `??` treats that as
+  // "missing" too, silently reverting Pro/Enterprise to the free cap.
+  const limit = (PLAN_LIMITS[plan] ?? PLAN_LIMITS.free).filesPerDay;
 
   if (limit === null) {
     return { allowed: true, plan, limit: null, used: 0, remaining: null };
@@ -68,6 +74,14 @@ export async function checkAndConsumeUsage(
   const used = existing?.filesProcessed ?? 0;
 
   if (used + filesRequested > limit) {
+    if (userEmail && existing && !existing.limitNotifiedAt) {
+      await db
+        .update(usageRecords)
+        .set({ limitNotifiedAt: new Date() })
+        .where(eq(usageRecords.id, existing.id));
+      // Fire-and-forget — a slow/failed email should never block the response.
+      sendUsageLimitReachedEmail(userEmail, plan, limit).catch(() => {});
+    }
     return { allowed: false, plan, limit, used, remaining: Math.max(0, limit - used) };
   }
 

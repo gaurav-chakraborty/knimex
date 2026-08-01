@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Activity, MessageSquare, TrendingUp, Search, Filter, Clock, Mail, User as UserIcon, BarChart3, FileText } from "lucide-react";
+import { Users, Activity, MessageSquare, TrendingUp, Search, Filter, Clock, Mail, User as UserIcon, BarChart3, FileText, DollarSign, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -16,6 +16,9 @@ interface Stats {
   todaysRegistrations: number;
   totalEvents: number;
   activeSessions: number;
+  planDistribution?: { plan: string; count: number }[];
+  paidUsers?: number;
+  estimatedMrr?: number;
 }
 
 interface User {
@@ -278,6 +281,54 @@ export default function AdminDashboard() {
         {/* Tab Content */}
         {selectedTab === "overview" && stats && (
           <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium text-zinc-400">Estimated MRR</CardTitle>
+                    <DollarSign className="w-5 h-5 text-emerald-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-white">
+                    ${(stats.estimatedMrr ?? 0).toLocaleString()}
+                    <span className="text-sm text-zinc-500 font-normal">/mo</span>
+                  </div>
+                  <p className="text-xs text-zinc-500 mt-2">
+                    {stats.paidUsers ?? 0} paid subscriber{(stats.paidUsers ?? 0) === 1 ? "" : "s"} · Enterprise excluded (custom pricing)
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium text-zinc-400">Plan Distribution</CardTitle>
+                    <CreditCard className="w-5 h-5 text-purple-400" />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {(stats.planDistribution ?? []).map((row) => {
+                    const pct = stats.totalUsers > 0 ? Math.round((row.count / stats.totalUsers) * 100) : 0;
+                    return (
+                      <div key={row.plan} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-white uppercase">{row.plan}</span>
+                          <span className="text-zinc-500">{row.count} ({pct}%)</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            </div>
+
             <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle className="text-white">Recent Activity</CardTitle>

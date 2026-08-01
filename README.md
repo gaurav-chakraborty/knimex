@@ -15,6 +15,8 @@ FileX is a cutting-edge, client-side web application designed to empower users w
 *   **User Authentication**: Secure user management and authentication powered by Better-Auth and Supabase PostgreSQL.
 *   **Subscriptions & Billing**: Stripe-backed Free/Pro/Enterprise plans with checkout, a self-service billing portal, and an account dashboard at `/account`.
 *   **Usage Enforcement**: Free-plan daily processing limits are tracked and enforced server-side, with graceful upgrade prompts when a limit is hit.
+*   **Transactional Email**: Resend-backed notifications for hitting a daily limit and for subscription upgrades/cancellations (optional — skipped when unconfigured).
+*   **Admin Revenue Visibility**: `/admin` surfaces plan distribution and an estimated MRR alongside existing user/feedback/analytics tooling.
 
 ## Technology Stack
 
@@ -66,6 +68,14 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+### Running Tests
+
+Unit tests (Vitest) cover the metadata engine and the billing/usage-limit logic:
+
+```bash
+npm test
+```
 
 ## Learn More
 

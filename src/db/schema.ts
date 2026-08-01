@@ -88,6 +88,7 @@ export const usageRecords = pgTable('usage_records', {
   identifier: text('identifier').notNull(), // userId when signed in, otherwise "ip:<address>"
   usageDate: text('usage_date').notNull(), // YYYY-MM-DD (UTC)
   filesProcessed: integer('files_processed').notNull().default(0),
+  limitNotifiedAt: timestamp('limit_notified_at'), // set once we email the user that they hit their daily cap
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

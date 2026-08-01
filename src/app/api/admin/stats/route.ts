@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { user, session, analyticsEvents } from '@/db/schema';
-import { count, gte, gt } from 'drizzle-orm';
+import { count, gte, gt, eq } from 'drizzle-orm';
 import { checkAdminAccess } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
@@ -44,12 +44,32 @@ export async function GET(request: NextRequest) {
       .where(gt(session.expiresAt, now));
     const activeSessions = activeSessionsResult[0].count;
 
+    // 5. Plan distribution + a rough MRR estimate (Enterprise is custom-priced
+    // and excluded — its true value lives outside Stripe's list price).
+    const planCountsResult = await db
+      .select({ plan: user.plan, count: count() })
+      .from(user)
+      .groupBy(user.plan);
+
+    const PLAN_MONTHLY_PRICE: Record<string, number> = { free: 0, pro: 12 };
+    const planDistribution = planCountsResult.map((row) => ({ plan: row.plan, count: row.count }));
+    const estimatedMrr = planCountsResult.reduce(
+      (sum, row) => sum + (PLAN_MONTHLY_PRICE[row.plan] ?? 0) * row.count,
+      0
+    );
+    const paidUsers = planCountsResult
+      .filter((row) => row.plan !== 'free')
+      .reduce((sum, row) => sum + row.count, 0);
+
     // Return statistics
     return NextResponse.json({
       totalUsers,
       todaysRegistrations,
       totalEvents,
-      activeSessions
+      activeSessions,
+      planDistribution,
+      paidUsers,
+      estimatedMrr
     }, { status: 200 });
 
   } catch (error) {
