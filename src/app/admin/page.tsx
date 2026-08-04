@@ -7,7 +7,52 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Activity, MessageSquare, TrendingUp, Search, Filter, Clock, Mail, User as UserIcon, BarChart3, FileText, DollarSign, CreditCard } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Users,
+  Activity,
+  MessageSquare,
+  TrendingUp,
+  Search,
+  Filter,
+  Clock,
+  Mail,
+  User as UserIcon,
+  BarChart3,
+  FileText,
+  DollarSign,
+  CreditCard,
+  Pencil,
+  Trash2,
+  UserPlus,
+  Loader2,
+  ShieldCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -26,8 +71,14 @@ interface User {
   name: string;
   email: string;
   emailVerified: boolean;
+  role: string;
+  plan: string;
+  subscriptionStatus: string;
   createdAt: string;
 }
+
+const ROLES = ["user", "admin"];
+const PLANS = ["free", "pro", "enterprise"];
 
 interface Feedback {
   id: number;
@@ -58,6 +109,18 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTab, setSelectedTab] = useState<"overview" | "users" | "feedback" | "analytics">("overview");
+
+  // User management dialogs
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editForm, setEditForm] = useState({ name: "", role: "user", plan: "free", emailVerified: false });
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createForm, setCreateForm] = useState({ name: "", email: "", role: "user", plan: "free" });
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -142,6 +205,107 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error("Error updating feedback:", error);
       toast.error("An error occurred");
+    }
+  };
+
+  const openEditDialog = (target: User) => {
+    setEditingUser(target);
+    setEditForm({
+      name: target.name,
+      role: target.role,
+      plan: target.plan,
+      emailVerified: target.emailVerified,
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editingUser) return;
+    const token = localStorage.getItem("bearer_token");
+
+    setSavingEdit(true);
+    try {
+      const res = await fetch(`/api/admin/users/${editingUser.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(editForm),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("User updated");
+        setEditingUser(null);
+        fetchDashboardData();
+      } else {
+        toast.error(data.error || "Failed to update user");
+      }
+    } catch (error) {
+      console.error("Error updating user:", error);
+      toast.error("An error occurred");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingUser) return;
+    const token = localStorage.getItem("bearer_token");
+
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/users/${deletingUser.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success(`${deletingUser.email} deleted`);
+        setDeletingUser(null);
+        fetchDashboardData();
+      } else {
+        toast.error(data.error || "Failed to delete user");
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("An error occurred");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const submitCreate = async () => {
+    const token = localStorage.getItem("bearer_token");
+
+    setCreating(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(createForm),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        if (data.created && data.temporaryPassword) {
+          navigator.clipboard?.writeText(data.temporaryPassword).catch(() => {});
+          toast.success(
+            `User created. Temporary password copied to clipboard: ${data.temporaryPassword}`,
+            { duration: 15000 }
+          );
+        } else {
+          toast.success("Existing user updated (upsert)");
+        }
+        setShowCreateDialog(false);
+        setCreateForm({ name: "", email: "", role: "user", plan: "free" });
+        fetchDashboardData();
+      } else {
+        toast.error(data.error || "Failed to create user");
+      }
+    } catch (error) {
+      console.error("Error creating user:", error);
+      toast.error("An error occurred");
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -374,6 +538,13 @@ export default function AdminDashboard() {
                   <Button size="icon" variant="outline" className="border-white/10 hover:bg-white/5">
                     <Search className="w-4 h-4" />
                   </Button>
+                  <Button
+                    onClick={() => setShowCreateDialog(true)}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                  >
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    New User
+                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -384,25 +555,60 @@ export default function AdminDashboard() {
                     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     user.email.toLowerCase().includes(searchTerm.toLowerCase())
                   )
-                  .map((user) => (
-                    <div key={user.id} className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-lg hover:border-white/20 transition-colors">
-                      <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full">
-                        <UserIcon className="w-5 h-5 text-white" />
+                  .map((target) => {
+                    const isSelf = target.id === session?.user?.id;
+                    return (
+                      <div key={target.id} className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-lg hover:border-white/20 transition-colors">
+                        <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full">
+                          <UserIcon className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-white truncate">{target.name}</p>
+                            {isSelf && <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 text-[10px]">You</Badge>}
+                          </div>
+                          <p className="text-sm text-zinc-400 truncate">{target.email}</p>
+                        </div>
+                        <div className="hidden md:flex items-center gap-2">
+                          {target.role === "admin" && (
+                            <Badge className="bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/30 gap-1">
+                              <ShieldCheck className="w-3 h-3" /> Admin
+                            </Badge>
+                          )}
+                          <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 uppercase">
+                            {target.plan}
+                          </Badge>
+                          <Badge className={target.emailVerified ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"}>
+                            {target.emailVerified ? "Verified" : "Unverified"}
+                          </Badge>
+                          <span className="text-xs text-zinc-500">
+                            {new Date(target.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="hover:bg-white/10 text-zinc-300"
+                            onClick={() => openEditDialog(target)}
+                            title="Edit user"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            disabled={isSelf}
+                            className="hover:bg-red-500/10 text-red-400 disabled:opacity-20 disabled:cursor-not-allowed"
+                            onClick={() => setDeletingUser(target)}
+                            title={isSelf ? "You cannot delete your own account" : "Delete user"}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-white">{user.name}</p>
-                        <p className="text-sm text-zinc-400">{user.email}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={user.emailVerified ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"}>
-                          {user.emailVerified ? "Verified" : "Unverified"}
-                        </Badge>
-                        <span className="text-xs text-zinc-500">
-                          {new Date(user.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </CardContent>
           </Card>
@@ -493,6 +699,188 @@ export default function AdminDashboard() {
           </Card>
         )}
       </div>
+
+      {/* Edit User Dialog */}
+      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+        <DialogContent className="bg-zinc-900 border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription className="text-zinc-400">{editingUser?.email}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label className="text-zinc-400 text-xs">Name</Label>
+              <Input
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                className="bg-zinc-800/50 border-white/10 text-white"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-zinc-400 text-xs">Role</Label>
+                <Select
+                  value={editForm.role}
+                  onValueChange={(v) => setEditForm({ ...editForm, role: v })}
+                  disabled={editingUser?.id === session?.user?.id}
+                >
+                  <SelectTrigger className="bg-zinc-800/50 border-white/10 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                    {ROLES.map((r) => (
+                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {editingUser?.id === session?.user?.id && (
+                  <p className="text-[10px] text-zinc-500">You can&apos;t change your own role.</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label className="text-zinc-400 text-xs">Plan</Label>
+                <Select value={editForm.plan} onValueChange={(v) => setEditForm({ ...editForm, plan: v })}>
+                  <SelectTrigger className="bg-zinc-800/50 border-white/10 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                    {PLANS.map((p) => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+              <Label className="text-sm">Email Verified</Label>
+              <Button
+                size="sm"
+                variant={editForm.emailVerified ? "default" : "outline"}
+                className={editForm.emailVerified ? "bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30" : "border-white/10"}
+                onClick={() => setEditForm({ ...editForm, emailVerified: !editForm.emailVerified })}
+              >
+                {editForm.emailVerified ? "Verified" : "Unverified"}
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" className="border-white/10" onClick={() => setEditingUser(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={saveEdit}
+              disabled={savingEdit}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+            >
+              {savingEdit && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
+        <AlertDialogContent className="bg-zinc-900 border-white/10 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {deletingUser?.email}?</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              This permanently deletes the account and all of its sessions. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-transparent border-white/10 text-white hover:bg-white/10">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDelete();
+              }}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Delete User
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Create User Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="bg-zinc-900 border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle>New User</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Creates an account (or updates one that already exists with this email) and returns a
+              one-time temporary password.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label className="text-zinc-400 text-xs">Name</Label>
+              <Input
+                value={createForm.name}
+                onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                className="bg-zinc-800/50 border-white/10 text-white"
+                placeholder="Jane Doe"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-zinc-400 text-xs">Email</Label>
+              <Input
+                type="email"
+                value={createForm.email}
+                onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                className="bg-zinc-800/50 border-white/10 text-white"
+                placeholder="jane@example.com"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-zinc-400 text-xs">Role</Label>
+                <Select value={createForm.role} onValueChange={(v) => setCreateForm({ ...createForm, role: v })}>
+                  <SelectTrigger className="bg-zinc-800/50 border-white/10 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                    {ROLES.map((r) => (
+                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-zinc-400 text-xs">Plan</Label>
+                <Select value={createForm.plan} onValueChange={(v) => setCreateForm({ ...createForm, plan: v })}>
+                  <SelectTrigger className="bg-zinc-800/50 border-white/10 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                    {PLANS.map((p) => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" className="border-white/10" onClick={() => setShowCreateDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={submitCreate}
+              disabled={creating || !createForm.name || !createForm.email}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+            >
+              {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Create / Upsert
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
