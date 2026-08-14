@@ -9,8 +9,8 @@ import CookieBanner from "@/components/CookieBanner";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const appBasePath = process.env.NEXT_PUBLIC_APP_BASE_PATH?.replace(/\/$/, "") || "";
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://knimex.space").replace(/\/$/, "");
+const appBasePath = (process.env.NEXT_PUBLIC_APP_BASE_PATH ?? (process.env.NODE_ENV === "production" ? "/filex" : "")).replace(/\/$/, "");
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === "production" ? "https://knimex.com" : "http://localhost:3000")).replace(/\/$/, "");
 const publicAppUrl = `${siteUrl}${appBasePath}`;
 
 export const metadata: Metadata = {

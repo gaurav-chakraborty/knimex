@@ -5,7 +5,7 @@ import { APP_BASE_PATH } from "@/lib/app-path"
 
 const authBaseURL = typeof window !== "undefined"
   ? `${window.location.origin}${APP_BASE_PATH}`
-  : `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}${APP_BASE_PATH}`;
+  : `${process.env.NEXT_PUBLIC_SITE_URL ?? (process.env.NODE_ENV === "production" ? "https://knimex.com" : "http://localhost:3000")}${APP_BASE_PATH}`;
 
 export const authClient = createAuthClient({
    baseURL: authBaseURL,

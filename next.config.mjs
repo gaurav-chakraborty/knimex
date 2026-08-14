@@ -7,7 +7,8 @@ const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
 
 /** @type {import('next').NextConfig} */
-const appBasePath = process.env.NEXT_PUBLIC_APP_BASE_PATH?.replace(/\/$/, '') || '';
+const configuredBasePath = process.env.NEXT_PUBLIC_APP_BASE_PATH ?? (process.env.NODE_ENV === 'production' ? '/filex' : '');
+const appBasePath = configuredBasePath.replace(/\/$/, '');
 
 const nextConfig = {
   basePath: appBasePath || undefined,
