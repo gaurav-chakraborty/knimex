@@ -7,8 +7,12 @@ const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
 
 /** @type {import('next').NextConfig} */
+const appBasePath = process.env.NEXT_PUBLIC_APP_BASE_PATH?.replace(/\/$/, '') || '';
+
 const nextConfig = {
+  basePath: appBasePath || undefined,
   images: {
+
     remotePatterns: [
       {
         protocol: 'https',

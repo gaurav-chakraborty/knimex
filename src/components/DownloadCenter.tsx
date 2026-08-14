@@ -16,8 +16,8 @@ import {
   Lock, AlertTriangle, Camera, Eye, History, MapPin, Cpu, Scissors, 
   Settings2, Database, Info, LogOut, LayoutDashboard, FileText, FileJson, 
   ShieldCheck, FileCode, Archive, Minimize2, HardDrive, RefreshCw,
-  Twitter, Linkedin, Copy, PlayCircle, ExternalLink, Globe, LockKeyhole, HelpCircle,
-  Clock, Trash2, FileCheck, ScanLine, Fingerprint
+  Copy, PlayCircle, ExternalLink, Globe, LockKeyhole, HelpCircle, Mail,
+  Clock, Trash2, FileCheck, ScanLine, Fingerprint, Eraser, Image as ImageIcon
 } from "lucide-react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
@@ -30,6 +30,8 @@ import Link from "next/link";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
+import WatermarkRemovalDialog from "@/components/WatermarkRemovalDialog";
+import { appPath } from "@/lib/app-path";
 
 interface TemplateSetting {
   id: string;
@@ -113,7 +115,7 @@ export default function DownloadCenter() {
   useEffect(() => {
     if (!session?.user) return;
     const token = localStorage.getItem("bearer_token");
-    fetch("/api/billing/status", { headers: { Authorization: `Bearer ${token}` } })
+    fetch(appPath("/api/billing/status"), { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => data?.plan && setUserPlan(data.plan))
       .catch(() => {});
@@ -125,6 +127,7 @@ export default function DownloadCenter() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [risks, setRisks] = useState<DetectedRisk[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [watermarkEditorFile, setWatermarkEditorFile] = useState<File | null>(null);
   const [processedCount, setProcessedCount] = useState(12842);
 
   // Guided Tour State
@@ -212,16 +215,20 @@ export default function DownloadCenter() {
   });
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
+    const nextFiles = Array.from(new Map(
+      [...uploadedFiles, ...acceptedFiles].map((file) => [`${file.name}:${file.size}:${file.lastModified}`, file])
+    ).values());
     setIsProcessing(true);
-    setUploadedFiles(acceptedFiles);
+    setUploadedFiles(nextFiles);
     setRisks([]);
 
     try {
       const formData = new FormData();
       formData.append("action", "extract");
-      acceptedFiles.forEach((file) => formData.append("files", file));
+      nextFiles.forEach((file) => formData.append("files", file));
 
-      const res = await fetch("/api/metadata", { method: "POST", body: formData });
+      const res = await fetch(appPath("/api/metadata"), { method: "POST", body: formData });
       const data = await res.json();
 
       if (!res.ok) {
@@ -255,9 +262,9 @@ export default function DownloadCenter() {
       if (riskList.length === 0) {
         toast.success("No risky metadata detected — your files look clean.");
       } else if (highCount > 0) {
-        toast.success(`${acceptedFiles.length} file(s) analyzed! ${highCount} critical privacy risk(s) detected.`);
+        toast.success(`${nextFiles.length} file(s) analyzed! ${highCount} critical privacy risk(s) detected.`);
       } else {
-        toast.success(`${acceptedFiles.length} file(s) analyzed! ${riskList.length} metadata field(s) found.`);
+        toast.success(`${nextFiles.length} file(s) analyzed! ${riskList.length} metadata field(s) found.`);
       }
     } catch (error) {
       console.error(error);
@@ -265,7 +272,7 @@ export default function DownloadCenter() {
     } finally {
       setIsProcessing(false);
     }
-  }, []);
+  }, [uploadedFiles]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop, 
@@ -284,6 +291,16 @@ export default function DownloadCenter() {
   const applyAllRecommendations = () => {
     setRisks(prev => prev.map(r => r.type !== 'safe' ? { ...r, isChecked: true } : r));
     toast.success("All privacy recommendations applied");
+  };
+
+  const imageFiles = useMemo(
+    () => uploadedFiles.filter((file) => file.type.startsWith("image/")),
+    [uploadedFiles]
+  );
+
+  const applyWatermarkRemoval = (originalFile: File, cleanedFile: File) => {
+    setUploadedFiles((files) => files.map((file) => file === originalFile ? cleanedFile : file));
+    toast.success(`${originalFile.name} is ready with watermark cleanup applied.`);
   };
 
   const stats = useMemo(() => {
@@ -315,7 +332,7 @@ export default function DownloadCenter() {
     try {
       // Strip metadata server-side for every file the user checked off,
       // subject to the plan's daily limit (enforced in /api/metadata).
-      let cleanedByFileName: Record<string, string> | null = null;
+      let cleanedByIndex: string[] | null = null;
       if (exportOptions.downloadCleaned) {
         const removeFields = risks.filter((r) => r.isChecked).map((r) => r.id);
         const cleanFormData = new FormData();
@@ -325,13 +342,13 @@ export default function DownloadCenter() {
         cleanFormData.append("replaceFields", JSON.stringify({}));
         cleanFormData.append("removeSignature", "false");
 
-        const cleanRes = await fetch("/api/metadata", { method: "POST", body: cleanFormData });
+        const cleanRes = await fetch(appPath("/api/metadata"), { method: "POST", body: cleanFormData });
         const cleanData = await cleanRes.json();
 
         if (!cleanRes.ok) {
           if (cleanRes.status === 402) {
             toast.error(cleanData.error || "Daily processing limit reached.");
-            router.push("/pricing");
+            router.push(appPath("/pricing"));
           } else {
             toast.error(cleanData.error || "Failed to clean files.");
           }
@@ -339,10 +356,7 @@ export default function DownloadCenter() {
           return;
         }
 
-        cleanedByFileName = {};
-        for (const cleaned of cleanData.files as Array<{ fileName: string; data: string }>) {
-          cleanedByFileName[cleaned.fileName] = cleaned.data;
-        }
+        cleanedByIndex = (cleanData.files as Array<{ fileName: string; data: string }>).map((cleaned) => cleaned.data);
       }
 
       // Process each file
@@ -358,7 +372,7 @@ export default function DownloadCenter() {
 
         // 1. Cleaned File — actual metadata-stripped bytes from the engine
         if (exportOptions.downloadCleaned) {
-          const cleanedBase64 = cleanedByFileName?.[file.name];
+          const cleanedBase64 = cleanedByIndex?.[i];
           if (cleanedBase64) {
             zip.file(fullFileName, cleanedBase64, { base64: true });
           } else {
@@ -370,6 +384,7 @@ export default function DownloadCenter() {
         if (exportOptions.generateLog) {
           const logContent = `Privacy Log for ${file.name}\n` + 
             `Timestamp: ${new Date().toISOString()}\n` +
+            `Watermark cleanup: ${file.name.includes("_watermark_removed") ? "APPLIED LOCALLY" : "NOT REQUESTED"}\n` +
             `-----------------------------------\n` +
             risks.map(r => `${r.label}: ${r.isChecked ? 'STRIPPED' : 'PRESERVED'} (Original: ${r.originalValue})`).join("\n");
           zip.file(`${fileName}_privacy_log.txt`, logContent);
@@ -381,7 +396,8 @@ export default function DownloadCenter() {
             file: file.name,
             originalSize: file.size,
             processedAt: new Date().toISOString(),
-            riskAnalysis: risks
+            riskAnalysis: risks,
+            watermarkCleanupApplied: file.name.includes("_watermark_removed")
           }, null, 2);
           zip.file(`${fileName}_metadata_snapshot.json`, jsonContent);
         }
@@ -447,7 +463,7 @@ export default function DownloadCenter() {
             <FileXLogo variant="standard" size="md" />
             <div className="flex items-center gap-6">
               <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-                  <Link href="#" className="hover:text-white transition-colors">Tools</Link>
+                  <Link href="#processing-hub" className="hover:text-white transition-colors">Tools</Link>
                   <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
                   <Button variant="ghost" size="sm" onClick={startTour} className="text-filex-blue hover:text-filex-blue-deep hover:bg-filex-blue/10 gap-2">
                     <HelpCircle className="w-4 h-4" />
@@ -464,7 +480,7 @@ export default function DownloadCenter() {
                       {userPlan}
                     </Badge>
                   </Link>
-                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/5" onClick={() => authClient.signOut()}>
+                  <Button aria-label="Sign out" variant="ghost" size="icon" className="rounded-full hover:bg-white/5" onClick={() => authClient.signOut()}>
                     <LogOut className="w-5 h-5 text-slate-400" />
                   </Button>
                 </div>
@@ -519,7 +535,7 @@ export default function DownloadCenter() {
                   <Upload className="w-5 h-5 mr-2" />
                   Upload Files
                 </Button>
-                <Button variant="outline" className="h-14 px-8 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 font-bold text-lg">
+                <Button variant="outline" onClick={startTour} className="h-14 px-8 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 font-bold text-lg">
                   <PlayCircle className="w-5 h-5 mr-2 text-filex-blue" />
                   Watch Workflow
                 </Button>
@@ -551,7 +567,7 @@ export default function DownloadCenter() {
             {/* Left Column: Configuration & Risks */}
             <div className="lg:col-span-7 space-y-10">
               {/* Security Configuration */}
-              <section className="security-config space-y-6">
+              <section id="security-engine" className="security-config space-y-6">
                 <h2 className="text-2xl font-bold flex items-center gap-3">
                   <Settings2 className="w-6 h-6 text-filex-blue" />
                   Security Configuration
@@ -592,14 +608,14 @@ export default function DownloadCenter() {
               </section>
 
               {/* Processing Hub / Dropzone */}
-              <section className="dropzone-area space-y-6">
+              <section id="processing-hub" className="dropzone-area space-y-6">
                 <h2 className="text-2xl font-bold flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Upload className="w-6 h-6 text-filex-cyan" />
                     Processing Hub
                   </div>
                   {uploadedFiles.length > 0 && (
-                    <Button variant="ghost" size="sm" onClick={() => setUploadedFiles([])} className="text-red-400 hover:text-red-300 hover:bg-red-400/10 h-8">
+                    <Button variant="ghost" size="sm" onClick={() => { setUploadedFiles([]); setWatermarkEditorFile(null); }} className="text-red-400 hover:text-red-300 hover:bg-red-400/10 h-8">
                       <Trash2 className="w-4 h-4 mr-2" />
                       Clear All
                     </Button>
@@ -634,7 +650,7 @@ export default function DownloadCenter() {
                         </div>
                         <p className="text-lg font-bold">{uploadedFiles.length} File(s) Staged</p>
                       </div>
-                      <p className="text-xs text-slate-500 uppercase tracking-widest font-black">Drop more to add</p>
+                      <p className="text-xs text-slate-500 uppercase tracking-widest font-black">Drop more to add · maximum 10 files</p>
                     </div>
                   ) : (
                     <>
@@ -650,6 +666,33 @@ export default function DownloadCenter() {
                   )}
                 </div>
               </section>
+
+              {uploadedFiles.length > 0 && (
+                <section id="batch-queue" aria-labelledby="batch-queue-title" className="space-y-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h2 id="batch-queue-title" className="text-2xl font-bold flex items-center gap-3"><LayoutDashboard className="w-6 h-6 text-filex-cyan" />Batch queue</h2>
+                      <p className="mt-1 text-xs text-slate-500">Each staged file is retained independently for export.</p>
+                    </div>
+                    <Badge variant="outline" className="border-white/10 text-slate-300">{uploadedFiles.length}/10</Badge>
+                  </div>
+                  <div className="space-y-2">
+                    {uploadedFiles.map((file) => {
+                      const isImage = file.type.startsWith("image/");
+                      return (
+                        <div key={`${file.name}:${file.size}:${file.lastModified}`} className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex min-w-0 items-center gap-3">
+                            <div className="rounded-xl bg-white/5 p-2 text-filex-cyan">{isImage ? <ImageIcon className="h-4 w-4" /> : <FileIcon className="h-4 w-4" />}</div>
+                            <div className="min-w-0"><p className="truncate text-sm font-semibold text-white">{file.name}</p><p className="text-[10px] uppercase tracking-widest text-slate-500">{(file.size / 1024).toFixed(1)} KB · {file.type || "file"}</p></div>
+                          </div>
+                          {isImage && <Button type="button" size="sm" variant="outline" onClick={() => setWatermarkEditorFile(file)} className="border-cyan-400/25 text-cyan-200 hover:bg-cyan-400/10"><Eraser className="mr-2 h-4 w-4" />Remove watermark</Button>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {imageFiles.length > 0 && <p className="text-[10px] font-medium italic text-slate-500">Watermark cleanup is local and intended for content you own or are authorized to edit.</p>}
+                </section>
+              )}
 
               {/* AI-Detected Risks */}
               <AnimatePresence>
@@ -945,7 +988,7 @@ export default function DownloadCenter() {
                       Start New Session
                     </Button>
                     <div className="flex gap-4">
-                      <Button variant="outline" className="flex-1 h-12 rounded-2xl border-white/10 hover:bg-white/5 font-bold" onClick={() => router.push("/pricing")}>
+                      <Button variant="outline" className="flex-1 h-12 rounded-2xl border-white/10 hover:bg-white/5 font-bold" onClick={() => router.push(appPath("/pricing"))}>
                         View Pro Features
                       </Button>
                       <Button variant="ghost" className="flex-1 h-12 rounded-2xl font-bold" onClick={() => toast.info("Feedback form coming soon!")}>
@@ -958,6 +1001,15 @@ export default function DownloadCenter() {
             </div>
           )}
         </AnimatePresence>
+
+        <WatermarkRemovalDialog
+          file={watermarkEditorFile}
+          open={Boolean(watermarkEditorFile)}
+          onOpenChange={(open) => { if (!open) setWatermarkEditorFile(null); }}
+          onApply={(cleanedFile) => {
+            if (watermarkEditorFile) applyWatermarkRemoval(watermarkEditorFile, cleanedFile);
+          }}
+        />
 
         {/* Guided Tour Overlay */}
         <AnimatePresence>
@@ -1021,19 +1073,19 @@ export default function DownloadCenter() {
               <p className="text-sm text-slate-500 font-medium max-w-xs leading-relaxed">
                 The world's most advanced client-side metadata erasure tool. Built for professionals who value digital sovereignty.
               </p>
-              <div className="flex gap-4">
-                <Button variant="outline" size="icon" className="rounded-full border-white/5 hover:bg-white/5"><Twitter className="w-4 h-4 text-white" /></Button>
-                <Button variant="outline" size="icon" className="rounded-full border-white/5 hover:bg-white/5"><Linkedin className="w-4 h-4 text-white" /></Button>
-                <Button variant="outline" size="icon" className="rounded-full border-white/5 hover:bg-white/5"><Copy className="w-4 h-4 text-white" /></Button>
+              <div className="flex gap-3">
+                <a aria-label="FileX GitHub repository" href="https://github.com/gaurav-chakraborty/filex" target="_blank" rel="noreferrer" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/5 text-slate-300 transition hover:bg-white/5 hover:text-white"><ExternalLink className="h-4 w-4" /></a>
+                <a aria-label="Email KNIMEX support" href="mailto:contact@knimex.com" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/5 text-slate-300 transition hover:bg-white/5 hover:text-white"><Mail className="h-4 w-4" /></a>
+                <button aria-label="Copy FileX link" type="button" onClick={() => { void navigator.clipboard?.writeText(window.location.href); toast.success("FileX link copied."); }} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/5 text-slate-300 transition hover:bg-white/5 hover:text-white"><Copy className="h-4 w-4" /></button>
               </div>
             </div>
             <div className="space-y-4">
               <h4 className="text-[10px] font-black uppercase tracking-widest text-white">Product</h4>
               <nav className="flex flex-col gap-3 text-sm font-medium text-slate-500">
-                <Link href="#" className="hover:text-white transition-colors">Security Engine</Link>
-                <Link href="#" className="hover:text-white transition-colors">API Docs</Link>
+                <Link href="#security-engine" className="hover:text-white transition-colors">Security Engine</Link>
+                <Link href="/api-docs" className="hover:text-white transition-colors">API Docs</Link>
                 <Link href="/pricing" className="hover:text-white transition-colors">Pricing Plans</Link>
-                <Link href="#" className="hover:text-white transition-colors">Open Source</Link>
+                <a href="https://github.com/gaurav-chakraborty/filex" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Open Source</a>
               </nav>
             </div>
             <div className="space-y-4">
@@ -1041,21 +1093,17 @@ export default function DownloadCenter() {
               <nav className="flex flex-col gap-3 text-sm font-medium text-slate-500">
                 <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
                 <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-                <Link href="#" className="hover:text-white transition-colors">Security Policy</Link>
-                <Link href="#" className="hover:text-white transition-colors">Cookie Audit</Link>
+                <Link href="/security" className="hover:text-white transition-colors">Security Policy</Link>
+                <Link href="/privacy#cookies" className="hover:text-white transition-colors">Cookie Audit</Link>
               </nav>
             </div>
-            <div className="col-span-2 lg:col-span-1 space-y-6">
-              <div className="p-6 rounded-3xl bg-filex-gradient/10 border border-white/5 space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-tight text-white">Stay Secure</h4>
-                <div className="flex gap-2">
-                  <Input placeholder="Email" className="bg-white/5 border-white/10 rounded-xl text-xs h-10" />
-                  <Button size="sm" className="bg-white text-black hover:bg-slate-200 rounded-xl h-10">
-                    <Zap className="w-3 h-3" />
-                  </Button>
+              <div className="col-span-2 lg:col-span-1 space-y-6">
+                <div className="p-6 rounded-3xl bg-filex-gradient/10 border border-white/5 space-y-4">
+                  <h4 className="text-xs font-black uppercase tracking-tight text-white">Need support?</h4>
+                  <p className="text-xs leading-5 text-slate-400">Questions about privacy, batch exports, or enterprise workflows?</p>
+                  <Link href="/contact" className="inline-flex items-center gap-2 text-xs font-bold text-cyan-200 hover:text-white">Open support center <ExternalLink className="h-3 w-3" /></Link>
                 </div>
               </div>
-            </div>
           </div>
           <div className="pt-20 flex flex-col md:flex-row justify-between items-center gap-6 opacity-30 text-[10px] font-black uppercase tracking-widest">
               <p>© 2025 KNIMEX. All rights reserved.</p>

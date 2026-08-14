@@ -71,7 +71,7 @@ export default function PrivacyPolicy() {
             </p>
           </section>
 
-          <section className="space-y-6">
+          <section id="cookies" className="space-y-6">
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
               <EyeOff className="w-6 h-6 text-green-400" />
               GDPR & CCPA Compliance
@@ -97,7 +97,7 @@ export default function PrivacyPolicy() {
               <p>
                 For any privacy-related concerns or data requests, please contact our Data Protection Officer at:
                 <br />
-                <a href="mailto:contact@knimex.space" className="text-blue-400 font-bold hover:underline">contact@knimex.space</a>
+                <a href="mailto:contact@knimex.com" className="text-blue-400 font-bold hover:underline">contact@knimex.com</a>
               </p>
             </CardContent>
           </Card>

@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Lock, Mail, LogIn, UserPlus } from "lucide-react";
 import Link from "next/link";
+import { appPath } from "@/lib/app-path";
 
 function LoginForm() {
   const router = useRouter();
@@ -32,7 +33,7 @@ function LoginForm() {
         email: formData.email,
         password: formData.password,
         rememberMe: formData.rememberMe,
-        callbackURL: "/"
+        callbackURL: appPath("/")
       });
 
       if (error?.code) {
@@ -42,7 +43,7 @@ function LoginForm() {
       }
 
       toast.success("Welcome back! Redirecting...");
-      router.push("/");
+      router.push(appPath("/"));
       router.refresh();
     } catch (error) {
       toast.error("An error occurred. Please try again.");

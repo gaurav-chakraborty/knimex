@@ -39,6 +39,7 @@ const required = [
 
 const optional = [
   'NEXT_PUBLIC_SITE_URL',
+  'NEXT_PUBLIC_APP_BASE_PATH',
   'CORS_ALLOWED_ORIGINS',
   'NODE_ENV'
 ];
@@ -81,6 +82,10 @@ for (const key of optional) {
   } else {
     warnings.push(`${key} not set (optional but recommended)`);
   }
+}
+
+if (process.env.NEXT_PUBLIC_APP_BASE_PATH && !/^\/[a-z0-9-]+$/i.test(process.env.NEXT_PUBLIC_APP_BASE_PATH)) {
+  warnings.push('NEXT_PUBLIC_APP_BASE_PATH should be a single slash-prefixed path such as /filex');
 }
 
 if (process.env.CORS_ALLOWED_ORIGINS?.split(',').some((origin) => origin.trim() === '*')) {

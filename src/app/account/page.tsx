@@ -21,6 +21,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { toast } from "sonner";
+import { appPath } from "@/lib/app-path";
 
 interface BillingStatus {
   plan: string;
@@ -75,7 +76,7 @@ function AccountPageContent() {
 
   useEffect(() => {
     if (!isPending && !session?.user) {
-      router.push("/login?redirect=/account");
+      router.push(appPath("/login?redirect=/account"));
     }
   }, [session, isPending, router]);
 
@@ -97,8 +98,8 @@ function AccountPageContent() {
     setLoading(true);
     try {
       const [statusRes, historyRes] = await Promise.all([
-        fetch("/api/billing/status", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("/api/billing/usage-history", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(appPath("/api/billing/status"), { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(appPath("/api/billing/usage-history"), { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       if (statusRes.ok) setStatus(await statusRes.json());
       if (historyRes.ok) setHistory((await historyRes.json()).history);
@@ -113,7 +114,7 @@ function AccountPageContent() {
     const token = localStorage.getItem("bearer_token");
     setActionLoading("checkout");
     try {
-      const res = await fetch("/api/billing/checkout", {
+      const res = await fetch(appPath("/api/billing/checkout"), {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ plan }),
@@ -135,7 +136,7 @@ function AccountPageContent() {
     const token = localStorage.getItem("bearer_token");
     setActionLoading("portal");
     try {
-      const res = await fetch("/api/billing/portal", {
+      const res = await fetch(appPath("/api/billing/portal"), {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

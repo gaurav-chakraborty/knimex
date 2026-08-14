@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Lock, Mail, User, UserPlus, LogIn } from "lucide-react";
 import Link from "next/link";
+import { appPath } from "@/lib/app-path";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -54,7 +55,7 @@ export default function RegisterPage() {
       }
 
       toast.success("Account created successfully! Redirecting to login...");
-      router.push("/login?registered=true");
+      router.push(appPath("/login?registered=true"));
     } catch (error) {
       toast.error("An error occurred. Please try again.");
       setIsLoading(false);

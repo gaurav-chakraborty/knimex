@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ChevronLeft, Send, Mail, MessageSquare, Star, Lightbulb, Handshake, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { appPath } from "@/lib/app-path";
 
 export default function ContactPage() {
   const [feedbackForm, setFeedbackForm] = useState({
@@ -25,7 +26,7 @@ export default function ContactPage() {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch("/api/feedback", {
+      const response = await fetch(appPath("/api/feedback"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(feedbackForm)
@@ -67,7 +68,7 @@ export default function ContactPage() {
                 <Mail className="w-5 h-5 text-purple-400" />
                 <div>
                   <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Email</p>
-                  <p className="text-sm text-slate-200">contact@knimex.space</p>
+                  <p className="text-sm text-slate-200">contact@knimex.com</p>
                 </div>
               </div>
               <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3">

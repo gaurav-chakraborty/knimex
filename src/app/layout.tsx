@@ -9,8 +9,12 @@ import CookieBanner from "@/components/CookieBanner";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
+const appBasePath = process.env.NEXT_PUBLIC_APP_BASE_PATH?.replace(/\/$/, "") || "";
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://knimex.space").replace(/\/$/, "");
+const publicAppUrl = `${siteUrl}${appBasePath}`;
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://knimex.space"),
+  metadataBase: new URL(publicAppUrl),
   title: "FileX by KNIMEX - Beyond the File. Your Metadata, Your Control. ✨",
   description: "Beyond the File. Your Metadata, Your Control. Remove sensitive metadata from your files without changing content. 100% client-side, zero tracking. 🎨",
   keywords: "metadata editor, file metadata, EXIF editor, PDF metadata, audio tags, video metadata, FileX, KNIMEX, privacy tool, secure metadata removal",
@@ -34,15 +38,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  console.log("RootLayout rendering");
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Favicons */}
-        <link rel="icon" type="image/x-icon" href="/brand/favicons/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/brand/favicons/favicon-16x16.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicons/favicon-32x32.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/brand/favicons/apple-touch-icon.png" />
+        <link rel="icon" type="image/x-icon" href={`${appBasePath}/brand/favicons/favicon.ico`} />
+        <link rel="icon" type="image/png" sizes="16x16" href={`${appBasePath}/brand/favicons/favicon-16x16.png`} />
+        <link rel="icon" type="image/png" sizes="32x32" href={`${appBasePath}/brand/favicons/favicon-32x32.png`} />
+        <link rel="apple-touch-icon" sizes="180x180" href={`${appBasePath}/brand/favicons/apple-touch-icon.png`} />
         <meta name="theme-color" content="#38BDF8" />
       </head>
         <body className="antialiased">

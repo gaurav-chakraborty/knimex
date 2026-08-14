@@ -11,6 +11,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
 import MobileNav from "@/components/MobileNav";
+import { appPath } from "@/lib/app-path";
 
 const PLANS = [
   {
@@ -61,7 +62,7 @@ const PLANS = [
     ],
     buttonText: "Contact Sales",
     buttonVariant: "outline" as const,
-      href: "mailto:contact@knimex.space"
+      href: "mailto:contact@knimex.com"
     }
   ];
 
@@ -87,14 +88,14 @@ function PricingPageContent() {
 
   const handleGetPro = async () => {
     if (!session?.user) {
-      router.push("/register?plan=pro");
+      router.push(appPath("/register?plan=pro"));
       return;
     }
 
     const token = localStorage.getItem("bearer_token");
     setCheckoutLoading(true);
     try {
-      const res = await fetch("/api/billing/checkout", {
+      const res = await fetch(appPath("/api/billing/checkout"), {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ plan: "pro" }),
@@ -134,7 +135,7 @@ function PricingPageContent() {
           <div className="flex items-center gap-6">
             <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
               <Link href="/" className="hover:text-white transition-colors">Back to App</Link>
-              <Link href="#" className="hover:text-white transition-colors">Documentation</Link>
+              <Link href="/api-docs" className="hover:text-white transition-colors">Documentation</Link>
             </nav>
             <div className="h-6 w-px bg-white/10 hidden md:block" />
             <Link href={session?.user ? "/account" : "/login"} className="hidden sm:block">
@@ -295,8 +296,8 @@ function PricingPageContent() {
             <h3 className="text-4xl md:text-6xl font-black tracking-tighter max-w-3xl mx-auto uppercase leading-none">Ready to reclaim your digital sovereignty?</h3>
             <p className="text-slate-400 text-lg max-w-xl mx-auto font-medium">Join 10,000+ privacy-conscious users who trust FileX with their most sensitive data.</p>
             <div className="flex flex-wrap justify-center gap-4 pt-4">
-              <Button onClick={() => router.push("/")} className="h-16 px-12 rounded-2xl bg-white text-black hover:bg-slate-200 font-black text-xl shadow-2xl shadow-white/10">Get Started Now</Button>
-              <Button variant="outline" className="h-16 px-12 rounded-2xl border-white/10 hover:bg-white/5 font-black text-xl">View Documentation</Button>
+              <Button onClick={() => router.push(appPath("/"))} className="h-16 px-12 rounded-2xl bg-white text-black hover:bg-slate-200 font-black text-xl shadow-2xl shadow-white/10">Get Started Now</Button>
+              <Link href="/api-docs"><Button variant="outline" className="h-16 px-12 rounded-2xl border-white/10 hover:bg-white/5 font-black text-xl">View Documentation</Button></Link>
             </div>
           </div>
         </section>
