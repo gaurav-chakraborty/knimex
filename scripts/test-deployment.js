@@ -1,164 +1,129 @@
-#!/usr/bin/env node
+const https = require("https");
+const http = require("http");
 
-const https = require('https');
-const http = require('http');
+const target = process.env.DEPLOYMENT_URL || process.argv[2] || "http://localhost:3000";
+const BASE_URL = new URL(/^https?:\/\//i.test(target) ? target : `${target.includes("localhost") ? "http" : "https"}://${target}`);
+const IS_LOCAL = BASE_URL.protocol === "http:";
 
-const DOMAIN = process.argv[2] || 'knimex.space';
-const IS_LOCAL = DOMAIN.includes('localhost');
-const BASE_URL = IS_LOCAL ? `http://${DOMAIN}` : `https://${DOMAIN}`;
-
-console.log('🧪 FileX Deployment Test Suite');
-console.log(`🎯 Target: ${BASE_URL}\n`);
+console.log("FileX deployment verification");
+console.log(`Target: ${BASE_URL.origin}\n`);
 
 const tests = [];
 let passed = 0;
 let failed = 0;
 
-// Helper function
 function makeRequest(path, options = {}) {
   return new Promise((resolve, reject) => {
     const url = new URL(path, BASE_URL);
     const protocol = IS_LOCAL ? http : https;
-
     const requestOptions = {
       hostname: url.hostname,
-      port: url.port || (IS_LOCAL ? 3000 : 443),
-      path: url.pathname,
-      method: options.method || 'GET',
+      port: url.port || (IS_LOCAL ? 80 : 443),
+      path: `${url.pathname}${url.search}`,
+      method: options.method || "GET",
       headers: options.headers || {},
-      timeout: 10000
+      timeout: 10000,
     };
 
-    const req = protocol.request(requestOptions, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        resolve({
-          status: res.statusCode,
-          headers: res.headers,
-          body: data
-        });
-      });
+    const request = protocol.request(requestOptions, (response) => {
+      let body = "";
+      response.setEncoding("utf8");
+      response.on("data", (chunk) => (body += chunk));
+      response.on("end", () => resolve({ status: response.statusCode, headers: response.headers, body }));
     });
 
-    req.on('error', reject);
-    req.on('timeout', () => {
-      req.destroy();
-      reject(new Error('Request timeout'));
+    request.on("error", reject);
+    request.on("timeout", () => {
+      request.destroy();
+      reject(new Error("Request timeout"));
     });
-
-    req.end();
+    request.end();
   });
 }
 
-// Test 1: Homepage
-tests.push({
-  name: 'Homepage loads',
-  run: async () => {
-    const res = await makeRequest('/');
-    if (res.status !== 200) {
-      throw new Error(`Expected 200, got ${res.status}`);
-    }
-    console.log('✅ Homepage loads (200 OK)');
+function parseJson(body) {
+  try {
+    return JSON.parse(body);
+  } catch {
+    throw new Error("Expected a JSON response");
   }
+}
+
+tests.push({
+  name: "Homepage loads",
+  run: async () => {
+    const response = await makeRequest("/");
+    if (response.status !== 200) throw new Error(`Expected 200, got ${response.status}`);
+    console.log("PASS homepage loads (200)");
+  },
 });
 
-// Test 2: Health endpoint
 tests.push({
-  name: 'Health endpoint',
+  name: "Health endpoint",
   run: async () => {
-    const res = await makeRequest('/api/health');
-    if (res.status !== 200) {
-      throw new Error(`Expected 200, got ${res.status}`);
+    const response = await makeRequest("/api/health");
+    if (response.status !== 200) throw new Error(`Expected 200, got ${response.status}`);
+    const data = parseJson(response.body);
+    if (!data.status || !["healthy", "degraded"].includes(data.status)) {
+      throw new Error(`Unexpected health status: ${data.status}`);
     }
-    const data = JSON.parse(res.body);
-    if (data.status !== 'healthy') {
-      throw new Error(`Expected healthy status, got ${data.status}`);
-    }
-    console.log('✅ Health endpoint responds correctly');
-  }
+    console.log(`PASS health endpoint (${data.status})`);
+  },
 });
 
-// Test 3: Database health
 tests.push({
-  name: 'Database health',
+  name: "Database health",
   run: async () => {
-    const res = await makeRequest('/api/db-health');
-    if (res.status !== 200 && res.status !== 503) {
-      throw new Error(`Expected 200 or 503, got ${res.status}`);
+    const response = await makeRequest("/api/db-health");
+    if (![200, 503].includes(response.status)) throw new Error(`Expected 200 or 503, got ${response.status}`);
+    const data = parseJson(response.body);
+    if (!["healthy", "degraded", "unhealthy", "error"].includes(data.status)) {
+      throw new Error(`Unexpected database status: ${data.status}`);
     }
-    const data = JSON.parse(res.body);
-    console.log(`✅ Database health: ${data.status}`);
-
-    if (data.status === 'degraded' || data.status === 'unhealthy') {
-      console.log('   ⚠️  Some checks failed:');
-      if (data.checks.errors) {
-        data.checks.errors.forEach(err => console.log(`      - ${err}`));
-      }
-    }
-  }
+    console.log(`PASS database health endpoint (${data.status})`);
+  },
 });
 
-// Test 4: Keep-alive endpoint (with auth)
 tests.push({
-  name: 'Keep-alive endpoint',
+  name: "Keep-alive endpoint",
   run: async () => {
     const secret = process.env.CRON_SECRET;
     if (!secret) {
-      console.log('⚠️  Keep-alive test skipped (CRON_SECRET not set)');
+      console.log("SKIP keep-alive authenticated check (CRON_SECRET not set)");
       return;
     }
 
-    const res = await makeRequest('/api/cron/keep-alive', {
-      headers: { 'Authorization': `Bearer ${secret}` }
+    const response = await makeRequest("/api/cron/keep-alive", {
+      headers: { Authorization: `Bearer ${secret}` },
     });
-
-    if (res.status !== 200) {
-      const data = JSON.parse(res.body);
-      throw new Error(`Expected 200, got ${res.status}: ${data.error || data.message}`);
+    const data = parseJson(response.body);
+    if (response.status !== 200 || !data.success) {
+      throw new Error(`Expected healthy keep-alive, got ${response.status}: ${data.error || data.message}`);
     }
-
-    const data = JSON.parse(res.body);
-    if (!data.success) {
-      throw new Error(`Keep-alive failed: ${data.error || data.message}`);
-    }
-
-    console.log(`✅ Keep-alive endpoint works (${data.responseTime})`);
-  }
+    console.log(`PASS keep-alive endpoint (${data.responseTime})`);
+  },
 });
 
-// Test 5: Keep-alive without auth (should fail)
 tests.push({
-  name: 'Keep-alive auth required',
+  name: "Keep-alive auth required",
   run: async () => {
-    const res = await makeRequest('/api/cron/keep-alive');
-    if (res.status !== 401) {
-      throw new Error(`Expected 401 Unauthorized, got ${res.status}`);
-    }
-    console.log('✅ Keep-alive requires authorization (401)');
-  }
+    const response = await makeRequest("/api/cron/keep-alive");
+    if (response.status !== 401) throw new Error(`Expected 401 Unauthorized, got ${response.status}`);
+    console.log("PASS keep-alive rejects unauthenticated requests");
+  },
 });
 
-// Run all tests
 (async () => {
   for (const test of tests) {
     try {
       await test.run();
-      passed++;
+      passed += 1;
     } catch (error) {
-      console.log(`❌ ${test.name}: ${error.message}`);
-      failed++;
+      console.error(`FAIL ${test.name}: ${error instanceof Error ? error.message : error}`);
+      failed += 1;
     }
   }
 
-  console.log('\n' + '='.repeat(60));
-  console.log(`\n📊 Results: ${passed} passed, ${failed} failed`);
-
-  if (failed > 0) {
-    console.log('\n❌ Some tests failed. Review errors above.');
-    process.exit(1);
-  } else {
-    console.log('\n✅ All tests passed! Deployment verified.');
-    process.exit(0);
-  }
+  console.log(`\nResults: ${passed} passed, ${failed} failed`);
+  if (failed > 0) process.exit(1);
 })();

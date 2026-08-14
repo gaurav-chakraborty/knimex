@@ -25,6 +25,8 @@ function loadEnv(filePath) {
 loadEnv(envPath);
 loadEnv(envLocalPath);
 
+const allowMissing = process.argv.includes('--allow-missing');
+
 const required = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
@@ -37,6 +39,7 @@ const required = [
 
 const optional = [
   'NEXT_PUBLIC_SITE_URL',
+  'CORS_ALLOWED_ORIGINS',
   'NODE_ENV'
 ];
 
@@ -62,6 +65,8 @@ for (const key of required) {
     if (key === 'CRON_SECRET' && process.env[key].length < 32) {
       warnings.push(`${key} should be at least 32 characters`);
     }
+  } else if (allowMissing) {
+    console.log(`⚠️  ${key} - MISSING (allowed in CI shape-check mode)`);
   } else {
     missing.push(key);
     console.log(`❌ ${key} - MISSING`);
@@ -78,6 +83,10 @@ for (const key of optional) {
   }
 }
 
+if (process.env.CORS_ALLOWED_ORIGINS?.split(',').some((origin) => origin.trim() === '*')) {
+  warnings.push('CORS_ALLOWED_ORIGINS must not contain the wildcard *');
+}
+
 console.log('\n' + '='.repeat(60));
 
 // Report warnings
@@ -87,7 +96,7 @@ if (warnings.length > 0) {
 }
 
 // Report results
-if (missing.length > 0) {
+if (missing.length > 0 && !allowMissing) {
   console.log(`\n❌ ${missing.length} required variable(s) missing:`);
   missing.forEach(key => console.log(`   - ${key}`));
   console.log('\nAdd to .env.local and Vercel environment variables.');
@@ -96,7 +105,9 @@ if (missing.length > 0) {
   console.log('  BETTER_AUTH_SECRET: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'base64\'))"');
   process.exit(1);
 } else {
-  console.log('\n✅ All required environment variables present!');
+  console.log(allowMissing
+    ? '\n✅ Environment variable shape check passed (missing secrets allowed in CI).'
+    : '\n✅ All required environment variables present!');
   if (warnings.length === 0) {
     console.log('✅ No warnings!');
   }

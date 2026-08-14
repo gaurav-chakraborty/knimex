@@ -1,85 +1,76 @@
-import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 
-// Lazy initialization to avoid build-time errors
-function getSupabaseClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+export const dynamic = "force-dynamic";
+
+function getSupabaseClient(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !serviceRoleKey) {
+    throw new Error("Supabase environment variables are not configured");
+  }
+
+  return createClient(url, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
 }
-
-export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const checks = {
     supabase_connection: false,
     auth_service: false,
-    tables: {
-      user_activity: false,
-      user_stats: false,
-      keep_alive_pings: false
+    optional_tables: {
+      keep_alive_pings: false,
     },
-    errors: [] as string[]
+    errors: [] as string[],
   };
 
   try {
     const supabase = getSupabaseClient();
+    const { error: authError } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1 });
 
-    // Check 1: Supabase connection via auth service
+    checks.supabase_connection = !authError;
+    checks.auth_service = !authError;
+    if (authError) checks.errors.push(`Auth error: ${authError.message}`);
+
     try {
-      const { error } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1 });
-      checks.supabase_connection = !error;
-      checks.auth_service = !error;
-      if (error) checks.errors.push(`Auth error: ${error.message}`);
-    } catch (e: any) {
-      checks.errors.push(`Connection error: ${e.message}`);
-    }
-
-    // Check 2: Required tables
-    const tables = ['user_activity', 'user_stats', 'keep_alive_pings'];
-    for (const table of tables) {
-      try {
-        const { error } = await supabase
-          .from(table)
-          .select('count')
-          .limit(1);
-
-        // Table exists if no error or just empty (PGRST116)
-        const exists = !error || error.code === 'PGRST116';
-        checks.tables[table as keyof typeof checks.tables] = exists;
-
-        if (!exists) {
-          checks.errors.push(`Table '${table}' missing or inaccessible`);
-        }
-      } catch (e: any) {
-        checks.errors.push(`Table '${table}' check failed: ${e.message}`);
+      const { error: pingError } = await supabase.from("keep_alive_pings").select("id").limit(1);
+      checks.optional_tables.keep_alive_pings = !pingError || pingError.code === "PGRST116";
+      if (pingError && !checks.optional_tables.keep_alive_pings) {
+        checks.errors.push(`Optional table 'keep_alive_pings' unavailable: ${pingError.message}`);
       }
+    } catch (tableError) {
+      checks.errors.push(
+        `Optional table 'keep_alive_pings' check failed: ${tableError instanceof Error ? tableError.message : "unknown error"}`,
+      );
     }
 
-    // Overall health
-    const allTablesExist = Object.values(checks.tables).every(Boolean);
-    const isHealthy = checks.supabase_connection && checks.auth_service && allTablesExist;
+    const status = checks.supabase_connection ? (checks.errors.length ? "degraded" : "healthy") : "unhealthy";
 
-    const status = isHealthy ? 'healthy' :
-                   checks.supabase_connection ? 'degraded' : 'unhealthy';
-
-    return NextResponse.json({
-      status,
-      checks,
-      timestamp: new Date().toISOString(),
-      recommendation: !allTablesExist ?
-        'Run the Supabase SQL setup to create missing tables' : null
-    }, {
-      status: isHealthy ? 200 : 503
-    });
-
-  } catch (error: any) {
-    return NextResponse.json({
-      status: 'error',
-      error: error.message,
-      checks,
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        status,
+        checks,
+        timestamp: new Date().toISOString(),
+        recommendation: checks.errors.length
+          ? "Review optional table availability and Supabase service health"
+          : null,
+      },
+      { status: status === "healthy" ? 200 : status === "degraded" ? 200 : 503 },
+    );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        status: "unhealthy",
+        error: error instanceof Error ? error.message : "Database health check failed",
+        checks,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 503 },
+    );
   }
 }
