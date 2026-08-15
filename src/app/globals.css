@@ -5,7 +5,7 @@
 @layer base {
   :root {
     color-scheme: light;
-    --background: 0 0% 100%;
+    --background: 210 33% 97%;
     --foreground: 222.2 47.4% 11.2%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 47.4% 11.2%;
@@ -13,16 +13,16 @@
     --popover-foreground: 222.2 47.4% 11.2%;
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
+    --secondary: 210 40% 94%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
+    --muted: 210 32% 93%;
     --muted-foreground: 215.4 16.3% 37%;
     --accent: 199 95% 94%;
     --accent-foreground: 201 96% 25%;
     --destructive: 0 72% 45%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 86%;
-    --input: 214.3 31.8% 86%;
+    --border: 214.3 28.8% 78.5%;
+    --input: 214.3 25.8% 70.5%;
     --ring: 198 93% 42%;
     --radius: 0.75rem;
     --chart-1: 198 93% 42%;
@@ -81,6 +81,52 @@
   ::selection {
     background: hsl(var(--primary) / 0.18);
     color: hsl(var(--foreground));
+  }
+}
+
+@layer components {
+  [data-slot="card"] {
+    border-color: hsl(var(--border));
+    box-shadow: 0 12px 30px -24px hsl(var(--foreground) / 0.55), 0 1px 3px hsl(var(--foreground) / 0.08);
+  }
+
+  [data-slot="button"] {
+    border: 1px solid hsl(var(--border) / 0.9);
+    box-shadow: 0 2px 5px hsl(var(--foreground) / 0.12);
+  }
+
+  [data-slot="button"][data-variant="default"] {
+    border-color: hsl(var(--primary) / 0.72);
+  }
+
+  [data-slot="button"][data-variant="destructive"] {
+    border-color: hsl(var(--destructive) / 0.72);
+  }
+
+  [data-slot="button"][data-variant="ghost"],
+  [data-slot="button"][data-variant="link"] {
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  button:not([data-slot="button"]):not([data-slot="select-trigger"]),
+  [role="button"]:not([data-slot="button"]) {
+    border: 1px solid hsl(var(--border) / 0.9);
+    border-radius: 0.625rem;
+    box-shadow: 0 2px 5px hsl(var(--foreground) / 0.1);
+  }
+
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="select-trigger"] {
+    background-color: hsl(var(--card) / 0.92);
+    border-color: hsl(var(--input));
+    box-shadow: inset 0 1px 2px hsl(var(--foreground) / 0.04), 0 1px 2px hsl(var(--foreground) / 0.06);
+  }
+
+  [data-slot="select-content"] {
+    border-color: hsl(var(--border));
+    box-shadow: 0 16px 34px -20px hsl(var(--foreground) / 0.55), 0 3px 8px hsl(var(--foreground) / 0.14);
   }
 }
 
