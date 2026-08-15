@@ -48,7 +48,7 @@ function markPrivate(response: NextResponse) {
   return response;
 }
 
-export function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const routePath = getRoutePath(pathname);
   const hostname = request.headers.get('host') || '';
@@ -62,6 +62,11 @@ export function middleware(request: NextRequest) {
       new URL(pathname + request.nextUrl.search, 'https://knimex.space'),
       301,
     );
+  }
+
+  // The KNIMEX parent shell owns the apex in production; FileX remains mounted at /filex.
+  if (basePath && pathname === '/') {
+    return NextResponse.rewrite(new URL(`${basePath}/knimex${request.nextUrl.search}`, request.url));
   }
 
   if (isApi) {
@@ -104,5 +109,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/:path*', '/filex/admin/:path*', '/filex/api/:path*'],
+  matcher: ['/', '/admin/:path*', '/api/:path*', '/filex/admin/:path*', '/filex/api/:path*'],
 };
