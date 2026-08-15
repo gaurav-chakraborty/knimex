@@ -53,7 +53,7 @@ vi.mock('@/lib/admin-audit', () => ({
   logAdminAction: (params: Record<string, unknown>) => logAdminAction(params),
 }));
 
-import { PATCH, DELETE } from '@/app/api/admin/users/[id]/route';
+import { PATCH, DELETE } from '@/app/filex/api/admin/users/[id]/route';
 
 function fakeRequest(body: unknown = {}): NextRequest {
   return { json: async () => body } as unknown as NextRequest;

@@ -31,7 +31,7 @@ vi.mock('@/db/schema', () => ({
   },
 }));
 
-import { GET } from '@/app/api/users/route';
+import { GET } from '@/app/filex/api/users/route';
 
 function fakeRequest(url = 'https://knimex.com/filex/api/users') {
   return { url } as unknown as NextRequest;

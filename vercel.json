@@ -4,12 +4,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm ci",
   "framework": "nextjs",
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/filex/knimex"
-    }
-  ],
   "regions": ["iad1"],
   "crons": [
     {

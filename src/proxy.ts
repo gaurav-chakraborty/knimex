@@ -64,11 +64,6 @@ export default function proxy(request: NextRequest) {
     );
   }
 
-  // The KNIMEX parent shell owns the apex in production; FileX remains mounted at /filex.
-  if (basePath && pathname === '/') {
-    return NextResponse.rewrite(new URL(`${basePath}/knimex${request.nextUrl.search}`, request.url));
-  }
-
   if (isApi) {
     const now = Date.now();
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'anonymous';

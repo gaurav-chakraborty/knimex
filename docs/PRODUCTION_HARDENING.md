@@ -10,7 +10,7 @@ The legacy `/api/users` directory is admin-only. Admin mutations use strict vali
 
 ## KNIMEX parent routing
 
-The KNIMEX parent shell is hosted by the same Vercel project as FileX. In production, `vercel.json` rewrites the apex `/` to the internal `/filex/knimex` route, while the product remains available at `/filex`. The rewrite is intentionally configured at Vercel because Next.js rejects a framework rewrite source outside the configured `/filex` basePath. The edge routing file is `src/proxy.ts`, matching the Next.js 16 proxy convention; placing it beside `src/app` is required for the proxy to be compiled. The parent shell uses the shared light/dark theme system and links to the base-path-aware FileX routes.
+The KNIMEX parent shell is hosted by the same Vercel project as FileX. The root `src/app/page.tsx` owns `/`, and the complete FileX route tree is physically mounted under `src/app/filex`, producing `/filex`, `/filex/pricing`, `/filex/api/*`, and the other child routes without a framework-level basePath or cross-root rewrite. `NEXT_PUBLIC_APP_BASE_PATH=/filex` remains the shared URL-prefix setting used by client navigation and auth helpers. The edge routing file is `src/proxy.ts`, matching the Next.js 16 proxy convention; placing it beside `src/app` is required for the proxy to be compiled. The parent shell uses the shared light/dark theme system and links to the base-path-aware FileX routes.
 
 The Lovable KNIMEX site was temporarily published at `https://knimex-hub-ecosystem.lovable.app/` only to inspect and validate the initial parent design. It must remain online until the Vercel parent shell is verified in production; delete or unpublish the temporary Lovable publication only after explicit final confirmation.
 
