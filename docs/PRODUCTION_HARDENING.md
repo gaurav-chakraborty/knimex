@@ -14,4 +14,4 @@ The KNIMEX parent shell is hosted by the same Vercel project as FileX. The root 
 
 The Lovable KNIMEX site was temporarily published at `https://knimex-hub-ecosystem.lovable.app/` only to inspect and validate the initial parent design. It must remain online until the Vercel parent shell is verified in production; delete or unpublish the temporary Lovable publication only after explicit final confirmation.
 
-After the parent-shell release is verified, restore Vercel’s `Require Verified Commits` setting. The setting was temporarily relaxed only because the connected GitHub account could not sign the deployment commit from this environment.
+After the parent-shell release is verified, restore Vercel’s `Require Verified Commits` setting. The setting was temporarily relaxed only because the connected GitHub account could not sign the deployment commit from this environment. Deployment-triggering commits should use the repository-linked GitHub author identity rather than an unrecognized noreply alias.
