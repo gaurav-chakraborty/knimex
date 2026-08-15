@@ -1,5 +1,6 @@
 import FileXLogo from "@/components/FileXLogo";
 import Link from "next/link";
+import { appPath } from "@/lib/app-path";
 
 export const metadata = {
   title: "FileX Security",
@@ -12,7 +13,7 @@ export default function SecurityPage() {
       <div className="mx-auto max-w-4xl space-y-12">
         <header className="flex items-center justify-between gap-6 border-b border-border pb-8">
           <FileXLogo variant="standard" size="sm" />
-          <Link href="/" className="text-sm font-semibold text-cyan-700 hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200">Back to FileX</Link>
+          <Link href={appPath("/")} className="text-sm font-semibold text-cyan-700 hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200">Back to FileX</Link>
         </header>
         <section className="space-y-5">
           <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-300">Security posture</p>

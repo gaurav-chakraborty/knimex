@@ -47,7 +47,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-background text-foreground/90 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <Link href="/">
+        <Link href={appPath("/")}>
           <Button variant="ghost" className="mb-8 text-muted-foreground hover:text-foreground">
             <ChevronLeft className="mr-2 h-4 w-4" />
             Back to Home
@@ -57,7 +57,7 @@ export default function ContactPage() {
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-1 space-y-6">
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-white">Connect with Us</h1>
+              <h1 className="text-3xl font-bold text-foreground">Connect with Us</h1>
               <p className="text-muted-foreground">
                 We're always excited to hear from our users, creators, and partners.
               </p>

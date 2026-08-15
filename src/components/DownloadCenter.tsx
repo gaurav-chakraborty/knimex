@@ -17,12 +17,11 @@ import {
   Settings2, Database, Info, LogOut, LayoutDashboard, FileText, FileJson, 
   ShieldCheck, FileCode, Archive, Minimize2, HardDrive, RefreshCw,
   Copy, PlayCircle, ExternalLink, Globe, LockKeyhole, HelpCircle, Mail,
-  Clock, Trash2, FileCheck, ScanLine, Fingerprint, Eraser, Image as ImageIcon
+  Clock, Trash2, FileCheck, ScanLine, Fingerprint, Eraser, FolderTree, Image as ImageIcon
 } from "lucide-react";
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef, type ChangeEvent, type InputHTMLAttributes } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import MobileNav from "@/components/MobileNav";
 import { authClient, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -73,6 +72,137 @@ const SUGGESTION_BY_RISK: Record<"high" | "medium" | "low", string> = {
   medium: "Recommended: Remove before sharing",
   low: "Optional: Safe to keep or remove",
 };
+
+const METADATA_BATCH_SIZE = 10;
+type FileWithRelativePath = File & { webkitRelativePath?: string };
+type FileSystemEntryLike = {
+  isFile: boolean;
+  isDirectory: boolean;
+  name: string;
+};
+type FileSystemFileEntryLike = FileSystemEntryLike & {
+  isFile: true;
+  file: (success: (file: File) => void, error: (error: DOMException) => void) => void;
+};
+type FileSystemDirectoryEntryLike = FileSystemEntryLike & {
+  isDirectory: true;
+  createReader: () => {
+    readEntries: (success: (entries: FileSystemEntryLike[]) => void, error: (error: DOMException) => void) => void;
+  };
+};
+
+type FileDropEvent = {
+  dataTransfer?: DataTransfer | null;
+  target?: { files?: FileList | null } | null;
+};
+
+function getRelativeFilePath(file: File): string {
+  const relativePath = (file as FileWithRelativePath).webkitRelativePath?.trim();
+  return relativePath || file.name;
+}
+
+function fileKey(file: File): string {
+  return `${getRelativeFilePath(file)}:${file.size}:${file.lastModified}`;
+}
+
+function outputPath(file: File, fileName: string): string {
+  const relativePath = getRelativeFilePath(file).replaceAll("\\", "/");
+  const lastSlash = relativePath.lastIndexOf("/");
+  const directory = lastSlash >= 0 ? relativePath.slice(0, lastSlash + 1) : "";
+  return `${directory}${fileName}`.replace(/^\/+/, "");
+}
+
+function fileWithRelativePath(file: File, relativePath: string): File {
+  const copy = new File([file], file.name, { type: file.type, lastModified: file.lastModified }) as FileWithRelativePath;
+  Object.defineProperty(copy, "webkitRelativePath", { value: relativePath, configurable: true });
+  return copy;
+}
+
+function readFileEntry(entry: FileSystemFileEntryLike, relativePath: string): Promise<File> {
+  return new Promise((resolve, reject) => {
+    entry.file(
+      (file) => resolve(fileWithRelativePath(file, relativePath)),
+      (error) => reject(error),
+    );
+  });
+}
+
+async function readDirectoryEntry(entry: FileSystemDirectoryEntryLike, parentPath: string): Promise<File[]> {
+  const reader = entry.createReader();
+  const entries: FileSystemEntryLike[] = [];
+  await new Promise<void>((resolve, reject) => {
+    const readBatch = () => {
+      reader.readEntries(
+        (batch) => {
+          if (batch.length === 0) {
+            resolve();
+            return;
+          }
+          entries.push(...batch);
+          readBatch();
+        },
+        reject,
+      );
+    };
+    readBatch();
+  });
+
+  const directoryPath = parentPath ? `${parentPath}/${entry.name}` : entry.name;
+  return (await Promise.all(entries.map((child) => readFileSystemEntry(child, directoryPath)))).flat();
+}
+
+async function readFileSystemEntry(entry: FileSystemEntryLike, parentPath = ""): Promise<File[]> {
+  const relativePath = parentPath ? `${parentPath}/${entry.name}` : entry.name;
+  if (entry.isFile) return [await readFileEntry(entry as FileSystemFileEntryLike, relativePath)];
+  if (entry.isDirectory) return readDirectoryEntry(entry as FileSystemDirectoryEntryLike, parentPath);
+  return [];
+}
+
+async function getFilesFromEvent(event: unknown): Promise<File[]> {
+  const inputEvent = event as FileDropEvent;
+  const items = inputEvent.dataTransfer?.items;
+  if (!items?.length) return Array.from(inputEvent.target?.files ?? []);
+
+  const entries = Array.from(items)
+    .map((item) => (item as DataTransferItem & { webkitGetAsEntry?: () => FileSystemEntry | null }).webkitGetAsEntry?.())
+    .filter((entry): entry is FileSystemEntry => Boolean(entry));
+
+  if (entries.length === 0) return Array.from(inputEvent.dataTransfer?.files ?? []);
+  return (await Promise.all(entries.map((entry) => readFileSystemEntry(entry)))).flat();
+}
+
+class MetadataRequestError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = "MetadataRequestError";
+  }
+}
+
+async function postMetadataBatches<T>(
+  action: "extract" | "remove",
+  files: File[],
+  fields: Record<string, string> = {},
+  onProgress?: (completed: number, total: number) => void,
+): Promise<T[]> {
+  const results: T[] = [];
+  for (let start = 0; start < files.length; start += METADATA_BATCH_SIZE) {
+    const batch = files.slice(start, start + METADATA_BATCH_SIZE);
+    const formData = new FormData();
+    formData.append("action", action);
+    Object.entries(fields).forEach(([key, value]) => formData.append(key, value));
+    batch.forEach((file) => formData.append("files", file, file.name));
+
+    const response = await fetch(appPath("/api/metadata"), { method: "POST", body: formData });
+    const data = await response.json().catch(() => ({} as { error?: string; files?: T[] }));
+    if (!response.ok) {
+      throw new MetadataRequestError(data.error || "Metadata processing failed.", response.status);
+    }
+
+    results.push(...((data.files ?? []) as T[]));
+    onProgress?.(Math.min(start + batch.length, files.length), files.length);
+  }
+  return results;
+}
 
 const TEMPLATES: Record<string, Template> = {
   "student": {
@@ -126,6 +256,8 @@ export default function DownloadCenter() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [risks, setRisks] = useState<DetectedRisk[]>([]);
+  const [batchProgress, setBatchProgress] = useState({ completed: 0, total: 0 });
+  const folderInputRef = useRef<HTMLInputElement>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [watermarkEditorFile, setWatermarkEditorFile] = useState<File | null>(null);
   const [processedCount, setProcessedCount] = useState(12842);
@@ -214,30 +346,26 @@ export default function DownloadCenter() {
     generateCertificate: "240 KB"
   });
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return;
+  const stageFiles = useCallback(async (incomingFiles: File[]) => {
+    if (incomingFiles.length === 0) return;
+
     const nextFiles = Array.from(new Map(
-      [...uploadedFiles, ...acceptedFiles].map((file) => [`${file.name}:${file.size}:${file.lastModified}`, file])
+      [...uploadedFiles, ...incomingFiles].map((file) => [fileKey(file), file]),
     ).values());
     setIsProcessing(true);
+    setBatchProgress({ completed: 0, total: nextFiles.length });
     setUploadedFiles(nextFiles);
     setRisks([]);
 
     try {
-      const formData = new FormData();
-      formData.append("action", "extract");
-      nextFiles.forEach((file) => formData.append("files", file));
-
-      const res = await fetch(appPath("/api/metadata"), { method: "POST", body: formData });
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.error || "Failed to analyze files.");
-        return;
-      }
-
+      const fileResults = await postMetadataBatches<{ fields: ExtractedMetadataField[] }>(
+        "extract",
+        nextFiles,
+        {},
+        (completed, total) => setBatchProgress({ completed, total }),
+      );
       const detected = new Map<string, DetectedRisk>();
-      for (const fileResult of data.files as Array<{ fields: ExtractedMetadataField[] }>) {
+      for (const fileResult of fileResults) {
         for (const field of fileResult.fields) {
           if (detected.has(field.key)) continue;
           const value = Array.isArray(field.value) ? field.value.join(", ") : field.value;
@@ -257,26 +385,42 @@ export default function DownloadCenter() {
 
       const riskList = Array.from(detected.values());
       setRisks(riskList);
-
       const highCount = riskList.filter((r) => r.type === "high").length;
       if (riskList.length === 0) {
-        toast.success("No risky metadata detected — your files look clean.");
+        toast.success(`No risky metadata detected across ${nextFiles.length} file(s).`);
       } else if (highCount > 0) {
-        toast.success(`${nextFiles.length} file(s) analyzed! ${highCount} critical privacy risk(s) detected.`);
+        toast.success(`${nextFiles.length} file(s) analyzed. ${highCount} critical privacy risk(s) detected.`);
       } else {
-        toast.success(`${nextFiles.length} file(s) analyzed! ${riskList.length} metadata field(s) found.`);
+        toast.success(`${nextFiles.length} file(s) analyzed. ${riskList.length} metadata field(s) found.`);
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to analyze files. Please try again.");
+      toast.error(error instanceof MetadataRequestError ? error.message : "Failed to analyze files. Please try again.");
     } finally {
       setIsProcessing(false);
     }
   }, [uploadedFiles]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
-    onDrop, 
+  const onDrop = useCallback(async (acceptedFiles: File[], _fileRejections: unknown[], event: unknown) => {
+    try {
+      const discoveredFiles = await getFilesFromEvent(event);
+      await stageFiles(discoveredFiles.length > 0 ? discoveredFiles : acceptedFiles);
+    } catch (error) {
+      console.error(error);
+      toast.error("Could not read the selected files or folder.");
+    }
+  }, [stageFiles]);
+
+  const onFolderChange = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    await stageFiles(files);
+  }, [stageFiles]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
     multiple: true,
+    noClick: false,
     accept: {
       'image/*': ['.jpg', '.jpeg', '.png', '.webp'],
       'application/pdf': ['.pdf'],
@@ -330,33 +474,33 @@ export default function DownloadCenter() {
     const zip = new JSZip();
 
     try {
-      // Strip metadata server-side for every file the user checked off,
-      // subject to the plan's daily limit (enforced in /api/metadata).
+      // Strip metadata server-side in ten-file windows so recursive folder batches
+      // can exceed one request without exceeding the API's per-request limit.
       let cleanedByIndex: string[] | null = null;
       if (exportOptions.downloadCleaned) {
         const removeFields = risks.filter((r) => r.isChecked).map((r) => r.id);
-        const cleanFormData = new FormData();
-        cleanFormData.append("action", "remove");
-        uploadedFiles.forEach((file) => cleanFormData.append("files", file));
-        cleanFormData.append("removeFields", JSON.stringify(removeFields));
-        cleanFormData.append("replaceFields", JSON.stringify({}));
-        cleanFormData.append("removeSignature", "false");
-
-        const cleanRes = await fetch(appPath("/api/metadata"), { method: "POST", body: cleanFormData });
-        const cleanData = await cleanRes.json();
-
-        if (!cleanRes.ok) {
-          if (cleanRes.status === 402) {
-            toast.error(cleanData.error || "Daily processing limit reached.");
+        try {
+          const cleaned = await postMetadataBatches<{ fileName: string; data: string }>(
+            "remove",
+            uploadedFiles,
+            {
+              removeFields: JSON.stringify(removeFields),
+              replaceFields: JSON.stringify({}),
+              removeSignature: "false",
+            },
+            (completed, total) => setBatchProgress({ completed, total }),
+          );
+          cleanedByIndex = cleaned.map((file) => file.data);
+        } catch (error) {
+          if (error instanceof MetadataRequestError && error.status === 402) {
+            toast.error(error.message || "Daily processing limit reached.");
             router.push(appPath("/pricing"));
           } else {
-            toast.error(cleanData.error || "Failed to clean files.");
+            toast.error(error instanceof Error ? error.message : "Failed to clean files.");
           }
           setIsProcessing(false);
           return;
         }
-
-        cleanedByIndex = (cleanData.files as Array<{ fileName: string; data: string }>).map((cleaned) => cleaned.data);
       }
 
       // Process each file
@@ -374,9 +518,9 @@ export default function DownloadCenter() {
         if (exportOptions.downloadCleaned) {
           const cleanedBase64 = cleanedByIndex?.[i];
           if (cleanedBase64) {
-            zip.file(fullFileName, cleanedBase64, { base64: true });
+            zip.file(outputPath(file, fullFileName), cleanedBase64, { base64: true });
           } else {
-            zip.file(fullFileName, file);
+            zip.file(outputPath(file, fullFileName), file);
           }
         }
 
@@ -387,7 +531,7 @@ export default function DownloadCenter() {
             `Watermark cleanup: ${file.name.includes("_watermark_removed") ? "APPLIED LOCALLY" : "NOT REQUESTED"}\n` +
             `-----------------------------------\n` +
             risks.map(r => `${r.label}: ${r.isChecked ? 'STRIPPED' : 'PRESERVED'} (Original: ${r.originalValue})`).join("\n");
-          zip.file(`${fileName}_privacy_log.txt`, logContent);
+          zip.file(outputPath(file, `${fileName}_privacy_log.txt`), logContent);
         }
 
         // 3. Export JSON
@@ -399,7 +543,7 @@ export default function DownloadCenter() {
             riskAnalysis: risks,
             watermarkCleanupApplied: file.name.includes("_watermark_removed")
           }, null, 2);
-          zip.file(`${fileName}_metadata_snapshot.json`, jsonContent);
+          zip.file(outputPath(file, `${fileName}_metadata_snapshot.json`), jsonContent);
         }
 
         // 4. Create HTML Report
@@ -415,7 +559,7 @@ export default function DownloadCenter() {
               </body>
             </html>
           `;
-          zip.file(`${fileName}_audit_report.html`, reportHtml);
+          zip.file(outputPath(file, `${fileName}_audit_report.html`), reportHtml);
         }
 
         // 5. Generate PDF Certificate
@@ -429,7 +573,7 @@ export default function DownloadCenter() {
           doc.text(`Verification ID: ${Math.random().toString(36).substring(7).toUpperCase()}`, 20, 70);
           doc.text(`Status: METADATA STRIPPED & VERIFIED`, 20, 90);
           const pdfBlob = doc.output("blob");
-          zip.file(`${fileName}_privacy_cert.pdf`, pdfBlob);
+          zip.file(outputPath(file, `${fileName}_privacy_cert.pdf`), pdfBlob);
         }
       }
 
@@ -445,6 +589,7 @@ export default function DownloadCenter() {
       toast.error("Failed to generate secure download.");
     } finally {
       setIsProcessing(false);
+      setBatchProgress((progress) => ({ completed: progress.total, total: progress.total }));
     }
   };
 
@@ -463,18 +608,17 @@ export default function DownloadCenter() {
             <FileXLogo variant="standard" size="md" />
             <div className="flex items-center gap-6">
               <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-                  <Link href="#processing-hub" className="hover:text-foreground transition-colors">Tools</Link>
-                  <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
+                  <Link href={`${appPath("/")}#processing-hub`} className="hover:text-foreground transition-colors">Tools</Link>
+                  <Link href={appPath("/pricing")} className="hover:text-foreground transition-colors">Pricing</Link>
                   <Button variant="ghost" size="sm" onClick={startTour} className="text-filex-blue hover:text-filex-blue-deep hover:bg-filex-blue/10 gap-2">
                     <HelpCircle className="w-4 h-4" />
                     Guided Tour
                   </Button>
               </nav>
               <div className="h-6 w-px bg-accent" />
-              <ThemeSwitcher />
               {session ? (
                 <div className="flex items-center gap-4">
-                  <Link href="/account" className="flex flex-col items-end group">
+                  <Link href={appPath("/account")} className="flex flex-col items-end group">
                     <span className="text-xs font-bold group-hover:text-filex-blue transition-colors">{session.user.name}</span>
                     <Badge className="bg-filex-blue/10 text-filex-blue border-filex-blue/20 text-[9px] py-0 uppercase">
                       {userPlan}
@@ -485,7 +629,7 @@ export default function DownloadCenter() {
                   </Button>
                 </div>
               ) : (
-                <Link href="/login">
+                <Link href={appPath("/login")}>
                   <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl px-6">
                     Sign In
                   </Button>
@@ -493,9 +637,9 @@ export default function DownloadCenter() {
               )}
               <MobileNav
                 links={[
-                  { href: "/pricing", label: "Pricing" },
-                  { href: session ? "/account" : "/login", label: session ? "My Account" : "Sign In" },
-                  { href: "/contact", label: "Contact" },
+                  { href: appPath("/pricing"), label: "Pricing" },
+                  { href: session ? appPath("/account") : appPath("/login"), label: session ? "My Account" : "Sign In" },
+                  { href: appPath("/contact"), label: "Contact" },
                 ]}
                 footer={
                   <Button variant="ghost" size="sm" onClick={startTour} className="w-full justify-start text-filex-blue hover:text-filex-blue-deep hover:bg-filex-blue/10 gap-2">
@@ -552,7 +696,7 @@ export default function DownloadCenter() {
                 {[
                   { label: "Local Processing", icon: HardDrive, color: "text-filex-cyan" },
                   { label: "AI Threat Detection", icon: ScanLine, color: "text-filex-blue" },
-                  { label: "Encrypted Exports", icon: LockKeyhole, color: "text-green-400" },
+                  { label: "Encrypted Exports", icon: LockKeyhole, color: "text-emerald-700 dark:text-emerald-400" },
                 ].map((badge) => (
                   <div key={badge.label} className="flex flex-col items-center gap-1">
                     <badge.icon className={`w-6 h-6 ${badge.color}`} />
@@ -615,7 +759,7 @@ export default function DownloadCenter() {
                     Processing Hub
                   </div>
                   {uploadedFiles.length > 0 && (
-                    <Button variant="ghost" size="sm" onClick={() => { setUploadedFiles([]); setWatermarkEditorFile(null); }} className="text-red-400 hover:text-red-300 hover:bg-red-400/10 h-8">
+                    <Button variant="ghost" size="sm" onClick={() => { setUploadedFiles([]); setRisks([]); setBatchProgress({ completed: 0, total: 0 }); setWatermarkEditorFile(null); }} className="text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 hover:bg-red-400/10 h-8">
                       <Trash2 className="w-4 h-4 mr-2" />
                       Clear All
                     </Button>
@@ -650,17 +794,26 @@ export default function DownloadCenter() {
                         </div>
                         <p className="text-lg font-bold">{uploadedFiles.length} File(s) Staged</p>
                       </div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-widest font-black">Drop more to add · maximum 10 files</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-widest font-black">Drop more files or folders to add · processed in secure batches</p>
                     </div>
                   ) : (
                     <>
                       <div className="w-20 h-20 rounded-[1.5rem] bg-filex-gradient flex items-center justify-center mb-6 shadow-2xl shadow-filex-blue/40 group-hover:scale-110 transition-transform duration-500">
                         <Upload className="w-8 h-8 text-white" />
                       </div>
-                      <h3 className="text-xl font-black tracking-tight">Drop files or click to upload</h3>
-                      <p className="text-muted-foreground max-w-sm text-center font-medium mt-2">Maximum privacy. All processing happens in your browser.</p>
-                      <Badge variant="outline" className="mt-6 border-border/70 bg-accent/50 text-muted-foreground px-4 py-1">
-                        JPG, PNG, PDF, MP4, MOV
+                      <h3 className="text-xl font-black tracking-tight">Drop files or use the buttons below</h3>
+                      <p className="text-muted-foreground max-w-sm text-center font-medium mt-2">Select multiple files or an entire folder. Nested paths stay intact in your export.</p>
+                      <div className="mt-6 flex flex-wrap justify-center gap-3">
+                        <Button type="button" variant="outline" className="border-border bg-background text-foreground hover:bg-accent" onClick={(event) => { event.stopPropagation(); document.getElementById("file-upload-input")?.click(); }}>
+                          <FileIcon className="mr-2 h-4 w-4" /> Choose files
+                        </Button>
+                        <Button type="button" variant="outline" className="border-border bg-background text-foreground hover:bg-accent" onClick={(event) => { event.stopPropagation(); folderInputRef.current?.click(); }}>
+                          <FolderTree className="mr-2 h-4 w-4" /> Choose folder
+                        </Button>
+                      </div>
+                      <input ref={folderInputRef} type="file" className="sr-only" onChange={onFolderChange} {...({ webkitdirectory: "", directory: "" } as InputHTMLAttributes<HTMLInputElement>)} />
+                      <Badge variant="outline" className="mt-4 border-border/70 bg-accent/50 text-muted-foreground px-4 py-1">
+                        JPG, PNG, PDF, MP4, MOV · files stay in your browser
                       </Badge>
                     </>
                   )}
@@ -674,7 +827,7 @@ export default function DownloadCenter() {
                       <h2 id="batch-queue-title" className="text-2xl font-bold flex items-center gap-3"><LayoutDashboard className="w-6 h-6 text-filex-cyan" />Batch queue</h2>
                       <p className="mt-1 text-xs text-muted-foreground">Each staged file is retained independently for export.</p>
                     </div>
-                    <Badge variant="outline" className="border-border text-foreground/80">{uploadedFiles.length}/10</Badge>
+                    <Badge variant="outline" className="border-border text-foreground">{uploadedFiles.length} staged</Badge>
                   </div>
                   <div className="space-y-2">
                     {uploadedFiles.map((file) => {
@@ -683,13 +836,19 @@ export default function DownloadCenter() {
                         <div key={`${file.name}:${file.size}:${file.lastModified}`} className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex min-w-0 items-center gap-3">
                             <div className="rounded-xl bg-accent/50 p-2 text-filex-cyan">{isImage ? <ImageIcon className="h-4 w-4" /> : <FileIcon className="h-4 w-4" />}</div>
-                            <div className="min-w-0"><p className="truncate text-sm font-semibold text-foreground">{file.name}</p><p className="text-[10px] uppercase tracking-widest text-muted-foreground">{(file.size / 1024).toFixed(1)} KB · {file.type || "file"}</p></div>
+                            <div className="min-w-0"><p className="truncate text-sm font-semibold text-foreground" title={getRelativeFilePath(file)}>{getRelativeFilePath(file)}</p><p className="text-[10px] uppercase tracking-widest text-muted-foreground">{(file.size / 1024).toFixed(1)} KB · {file.type || "file"}</p></div>
                           </div>
-                          {isImage && <Button type="button" size="sm" variant="outline" onClick={() => setWatermarkEditorFile(file)} className="border-cyan-400/25 text-cyan-200 hover:bg-cyan-400/10"><Eraser className="mr-2 h-4 w-4" />Remove watermark</Button>}
+                          {isImage && <Button type="button" size="sm" variant="outline" onClick={() => setWatermarkEditorFile(file)} className="border-filex-blue/30 text-filex-blue-deep dark:text-filex-cyan hover:bg-filex-blue/10"><Eraser className="mr-2 h-4 w-4" />Remove watermark</Button>}
                         </div>
                       );
                     })}
                   </div>
+                  {batchProgress.total > 0 && (
+                    <div className="space-y-2" aria-live="polite">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground"><span>Batch progress</span><span>{batchProgress.completed}/{batchProgress.total}</span></div>
+                      <div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-filex-gradient transition-[width] duration-200" style={{ width: `${batchProgress.total ? (batchProgress.completed / batchProgress.total) * 100 : 0}%` }} /></div>
+                    </div>
+                  )}
                   {imageFiles.length > 0 && <p className="text-[10px] font-medium italic text-muted-foreground">Watermark cleanup is local and intended for content you own or are authorized to edit.</p>}
                 </section>
               )}
@@ -704,7 +863,7 @@ export default function DownloadCenter() {
                   >
                     <div className="flex items-center justify-between">
                       <h2 className="text-2xl font-bold flex items-center gap-3">
-                        <Sparkles className="w-6 h-6 text-yellow-500" />
+                        <Sparkles className="w-6 h-6 text-amber-700 dark:text-amber-300" />
                         AI Risk Assessment
                       </h2>
                       <Button variant="outline" size="sm" onClick={applyAllRecommendations} disabled={risks.length === 0} className="border-filex-blue/30 text-filex-blue hover:bg-filex-blue/10 text-xs rounded-xl disabled:opacity-30">
@@ -1083,25 +1242,25 @@ export default function DownloadCenter() {
               <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground">Product</h4>
               <nav className="flex flex-col gap-3 text-sm font-medium text-muted-foreground">
                 <Link href="#security-engine" className="hover:text-foreground transition-colors">Security Engine</Link>
-                <Link href="/api-docs" className="hover:text-foreground transition-colors">API Docs</Link>
-                <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing Plans</Link>
+                <Link href={appPath("/api-docs")} className="hover:text-foreground transition-colors">API Docs</Link>
+                <Link href={appPath("/pricing")} className="hover:text-foreground transition-colors">Pricing Plans</Link>
                 <a href="https://github.com/gaurav-chakraborty/filex" target="_blank" rel="noreferrer" className="hover:text-foreground transition-colors">Open Source</a>
               </nav>
             </div>
             <div className="space-y-4">
               <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground">Legal</h4>
               <nav className="flex flex-col gap-3 text-sm font-medium text-muted-foreground">
-                <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-                <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
-                <Link href="/security" className="hover:text-foreground transition-colors">Security Policy</Link>
-                <Link href="/privacy#cookies" className="hover:text-foreground transition-colors">Cookie Audit</Link>
+                <Link href={appPath("/privacy")} className="hover:text-foreground transition-colors">Privacy Policy</Link>
+                <Link href={appPath("/terms")} className="hover:text-foreground transition-colors">Terms of Service</Link>
+                <Link href={appPath("/security")} className="hover:text-foreground transition-colors">Security Policy</Link>
+                <Link href={`${appPath("/privacy")}#cookies`} className="hover:text-foreground transition-colors">Cookie Audit</Link>
               </nav>
             </div>
               <div className="col-span-2 lg:col-span-1 space-y-6">
                 <div className="p-6 rounded-3xl bg-filex-gradient/10 border border-border/70 space-y-4">
                   <h4 className="text-xs font-black uppercase tracking-tight text-foreground">Need support?</h4>
                   <p className="text-xs leading-5 text-muted-foreground">Questions about privacy, batch exports, or enterprise workflows?</p>
-                  <Link href="/contact" className="inline-flex items-center gap-2 text-xs font-bold text-cyan-200 hover:text-foreground">Open support center <ExternalLink className="h-3 w-3" /></Link>
+                  <Link href={appPath("/contact")} className="inline-flex items-center gap-2 text-xs font-bold text-filex-blue-deep dark:text-filex-cyan hover:text-foreground">Open support center <ExternalLink className="h-3 w-3" /></Link>
                 </div>
               </div>
           </div>

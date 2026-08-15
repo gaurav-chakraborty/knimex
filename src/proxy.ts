@@ -56,10 +56,10 @@ export default function proxy(request: NextRequest) {
   const isApi = routePath === '/api' || routePath.startsWith('/api/');
   const isAdminPage = routePath === '/admin' || routePath.startsWith('/admin/');
 
-  // Preserve the existing canonical-host behavior until the user supplies new domain details.
-  if (hostname === 'www.knimex.space') {
+  // Keep the apex domain canonical for both the parent site and FileX child routes.
+  if (hostname === 'www.knimex.com') {
     return NextResponse.redirect(
-      new URL(pathname + request.nextUrl.search, 'https://knimex.space'),
+      new URL(pathname + request.nextUrl.search, 'https://knimex.com'),
       301,
     );
   }

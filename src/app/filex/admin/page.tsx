@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
+import { appPath } from "@/lib/app-path";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,7 +56,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { appPath } from "@/lib/app-path";
 
 interface Stats {
   totalUsers: number;
@@ -356,7 +356,7 @@ export default function AdminDashboard() {
             </h1>
             <p className="text-muted-foreground">Monitor users, analytics, and feedback</p>
           </div>
-          <Link href="/">
+          <Link href={appPath("/")}>
             <Button variant="outline" className="border-border hover:bg-accent/50 text-foreground">
               Back to Home
             </Button>

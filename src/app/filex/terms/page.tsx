@@ -2,12 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { appPath } from "@/lib/app-path";
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <Link href="/">
+        <Link href={appPath("/")}>
           <Button variant="ghost" className="mb-8 text-muted-foreground hover:text-foreground">
             <ChevronLeft className="mr-2 h-4 w-4" />
             Back to Home

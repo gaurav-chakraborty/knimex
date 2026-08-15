@@ -1,5 +1,6 @@
 import FileXLogo from "@/components/FileXLogo";
 import Link from "next/link";
+import { appPath } from "@/lib/app-path";
 
 export const metadata = {
   title: "FileX API Documentation",
@@ -12,7 +13,7 @@ export default function ApiDocsPage() {
       <div className="mx-auto max-w-4xl space-y-12">
         <header className="flex items-center justify-between gap-6 border-b border-border pb-8">
           <FileXLogo variant="standard" size="sm" />
-          <Link href="/" className="text-sm font-semibold text-cyan-700 hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200">Back to FileX</Link>
+          <Link href={appPath("/")} className="text-sm font-semibold text-cyan-700 hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200">Back to FileX</Link>
         </header>
         <section className="space-y-5">
           <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-700 dark:text-cyan-300">Integration surface</p>
@@ -22,7 +23,7 @@ export default function ApiDocsPage() {
         <div className="grid gap-5 md:grid-cols-3">
           {[
             ["Metadata", "Extract and remove supported metadata fields through the review workflow."],
-            ["Batching", "Process up to ten staged files in one secure export bundle."],
+            ["Batching", "Process large batches in secure export windows."],
             ["Privacy", "Watermark cleanup and file transformations stay in the browser."],
           ].map(([title, body]) => (
             <article key={title} className="rounded-3xl border border-border bg-muted/40 p-6">
@@ -32,7 +33,7 @@ export default function ApiDocsPage() {
           ))}
         </div>
         <div className="rounded-3xl border border-cyan-600/25 bg-cyan-50 p-6 text-sm leading-7 text-cyan-900 dark:border-cyan-300/20 dark:bg-cyan-300/5 dark:text-cyan-100">
-          Need an integration review? <Link href="/contact?topic=api" className="font-bold underline underline-offset-4">Contact the KNIMEX team</Link> with your use case and required data boundary.
+          Need an integration review? <Link href={appPath("/contact?topic=api")} className="font-bold underline underline-offset-4">Contact the KNIMEX team</Link> with your use case and required data boundary.
         </div>
       </div>
     </main>

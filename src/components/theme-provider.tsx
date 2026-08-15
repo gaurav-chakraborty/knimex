@@ -28,33 +28,32 @@ export function ThemeProvider({
   storageKey = "knimex-ui-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = React.useState<Theme>(
-    () => (typeof window !== "undefined" ? (localStorage.getItem(storageKey) as Theme) : defaultTheme) || defaultTheme
-  )
+  const [theme, setTheme] = React.useState<Theme>(() => {
+    if (typeof window === "undefined") return defaultTheme;
+    const stored = localStorage.getItem(storageKey);
+    return stored === "light" || stored === "dark" || stored === "system" ? stored : defaultTheme;
+  });
 
   React.useEffect(() => {
-    const root = window.document.documentElement
+    const root = window.document.documentElement;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-    root.classList.remove("light", "dark")
+    const applyTheme = () => {
+      root.classList.remove("light", "dark");
+      root.classList.add(theme === "system" ? (mediaQuery.matches ? "dark" : "light") : theme);
+    };
 
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light"
-
-      root.classList.add(systemTheme)
-      return
-    }
-
-    root.classList.add(theme)
-  }, [theme])
+    applyTheme();
+    if (theme !== "system") return;
+    mediaQuery.addEventListener("change", applyTheme);
+    return () => mediaQuery.removeEventListener("change", applyTheme);
+  }, [theme]);
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
-      setTheme(theme)
+      localStorage.setItem(storageKey, theme);
+      setTheme(theme);
     },
   }
 

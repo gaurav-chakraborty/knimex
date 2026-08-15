@@ -11,7 +11,6 @@ import { useState, useEffect, Suspense } from "react";
 import { useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
 import MobileNav from "@/components/MobileNav";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import { appPath } from "@/lib/app-path";
 
 const PLANS = [
@@ -28,7 +27,7 @@ const PLANS = [
     ],
     buttonText: "Start for Free",
     buttonVariant: "outline" as const,
-    href: "/"
+    href: appPath("/")
   },
   {
     name: "Pro",
@@ -46,7 +45,7 @@ const PLANS = [
     highlight: true,
     buttonText: "Get Pro Access",
     buttonVariant: "default" as const,
-    href: "/register?plan=pro",
+    href: appPath("/register?plan=pro"),
     planKey: "pro" as const
   },
   {
@@ -125,7 +124,7 @@ function PricingPageContent() {
       <div className="relative max-w-7xl mx-auto px-6 py-20 space-y-20">
         {/* Header */}
         <header className="flex justify-between items-center border-b border-border/70 pb-8">
-          <Link href="/" className="flex items-center gap-4 group">
+          <Link href={appPath("/")} className="flex items-center gap-4 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-600/20 group-hover:scale-110 transition-transform">
               <Shield className="w-6 h-6 text-white" />
             </div>
@@ -135,21 +134,20 @@ function PricingPageContent() {
           </Link>
           <div className="flex items-center gap-6">
             <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-              <Link href="/" className="hover:text-foreground transition-colors">Back to App</Link>
-              <Link href="/api-docs" className="hover:text-foreground transition-colors">Documentation</Link>
+              <Link href={appPath("/")} className="hover:text-foreground transition-colors">Back to App</Link>
+              <Link href={appPath("/api-docs")} className="hover:text-foreground transition-colors">Documentation</Link>
             </nav>
             <div className="h-6 w-px bg-accent hidden md:block" />
-            <ThemeSwitcher />
-            <Link href={session?.user ? "/account" : "/login"} className="hidden sm:block">
+            <Link href={session?.user ? appPath("/account") : appPath("/login")} className="hidden sm:block">
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl px-6">
                 {session?.user ? "My Account" : "Sign In"}
               </Button>
             </Link>
             <MobileNav
               links={[
-                { href: "/", label: "Back to App" },
-                { href: session?.user ? "/account" : "/login", label: session?.user ? "My Account" : "Sign In" },
-                { href: "/contact", label: "Contact" },
+                { href: appPath("/"), label: "Back to App" },
+                { href: session?.user ? appPath("/account") : appPath("/login"), label: session?.user ? "My Account" : "Sign In" },
+                { href: appPath("/contact"), label: "Contact" },
               ]}
             />
           </div>
@@ -157,7 +155,7 @@ function PricingPageContent() {
 
         {/* Hero Section */}
         <section className="text-center space-y-6">
-          <Badge className="bg-purple-500/10 text-purple-400 border-purple-500/20 px-4 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase">
+          <Badge className="bg-purple-500/10 text-filex-blue-deep dark:text-filex-cyan border-purple-500/20 px-4 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase">
             Transparent Pricing
           </Badge>
           <h2 className="text-5xl md:text-7xl font-black tracking-tighter max-w-4xl mx-auto leading-[0.9] uppercase">
@@ -203,7 +201,7 @@ function PricingPageContent() {
                   <ul className="space-y-4">
                     {plan.features.map((feature) => (
                       <li key={feature} className="flex items-start gap-3 text-sm font-medium">
-                        <Check className="w-5 h-5 text-green-400 shrink-0" />
+                        <Check className="w-5 h-5 text-emerald-700 dark:text-emerald-400 shrink-0" />
                         <span className="text-foreground/80">{feature}</span>
                       </li>
                     ))}
@@ -279,7 +277,7 @@ function PricingPageContent() {
             ].map((faq) => (
               <div key={faq.q} className="space-y-3 p-8 rounded-[2.5rem] bg-card/60 border border-border/70 hover:border-border transition-colors">
                 <h4 className="font-bold text-lg flex items-center gap-3">
-                  <HelpCircle className="w-5 h-5 text-blue-500" />
+                  <HelpCircle className="w-5 h-5 text-filex-blue-deep dark:text-filex-cyan" />
                   {faq.q}
                 </h4>
                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">{faq.a}</p>
@@ -299,7 +297,7 @@ function PricingPageContent() {
             <p className="text-muted-foreground text-lg max-w-xl mx-auto font-medium">Join 10,000+ privacy-conscious users who trust FileX with their most sensitive data.</p>
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <Button onClick={() => router.push(appPath("/"))} className="h-16 px-12 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 font-black text-xl shadow-2xl shadow-black/10">Get Started Now</Button>
-              <Link href="/api-docs"><Button variant="outline" className="h-16 px-12 rounded-2xl border-border hover:bg-accent/50 font-black text-xl">View Documentation</Button></Link>
+              <Link href={appPath("/api-docs")}><Button variant="outline" className="h-16 px-12 rounded-2xl border-border hover:bg-accent/50 font-black text-xl">View Documentation</Button></Link>
             </div>
           </div>
         </section>
@@ -318,10 +316,10 @@ function PricingPageContent() {
               <p>© 2025 KNIMEX. All rights reserved.</p>
             </div>
           <div className="flex gap-10">
-            <Link href="/" className="hover:text-foreground transition-colors">App</Link>
-            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
-            <Link href="/contact" className="hover:text-foreground transition-colors">Support Center</Link>
+            <Link href={appPath("/")} className="hover:text-foreground transition-colors">App</Link>
+            <Link href={appPath("/privacy")} className="hover:text-foreground transition-colors">Privacy Policy</Link>
+            <Link href={appPath("/terms")} className="hover:text-foreground transition-colors">Terms of Service</Link>
+            <Link href={appPath("/contact")} className="hover:text-foreground transition-colors">Support Center</Link>
           </div>
         </footer>
       </div>

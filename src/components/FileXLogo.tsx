@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { appPath } from '@/lib/app-path';
 
 interface FileXLogoProps {
   variant?: 'full' | 'standard' | 'icon';
@@ -42,7 +43,7 @@ export default function FileXLogo({
   
   if (linkToHome) {
     return (
-      <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
+      <Link href={appPath("/")} className="inline-block hover:opacity-80 transition-opacity">
         {logoImage}
       </Link>
     );

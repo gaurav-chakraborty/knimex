@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Cookie, X, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { appPath } from "@/lib/app-path";
 
 export default function CookieBanner() {
   const [isVisible, setIsVisible] = useState(false);
@@ -40,11 +41,11 @@ export default function CookieBanner() {
           <div className="flex-1 space-y-2 text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start gap-2">
               <h3 className="text-lg font-bold text-foreground">Privacy & Cookies</h3>
-              <ShieldCheck className="w-4 h-4 text-green-400" />
+              <ShieldCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               We use cookies to improve your experience and analyze our traffic. By clicking "Accept", you consent to our use of cookies as described in our{" "}
-              <Link href="/privacy" className="text-filex-blue hover:underline font-medium">
+              <Link href={appPath("/privacy")} className="text-filex-blue hover:underline font-medium">
                 Privacy Policy
               </Link>.
             </p>

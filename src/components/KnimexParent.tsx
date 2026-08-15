@@ -17,7 +17,6 @@ import {
   Terminal,
   Wrench,
 } from "lucide-react";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import { appPath } from "@/lib/app-path";
 
 const ecosystemCards = [
@@ -120,7 +119,6 @@ export default function KnimexParent() {
               <Search className="h-4 w-4" aria-hidden="true" />
               <span>Search</span>
             </a>
-            <ThemeSwitcher />
             <Link href={appPath("/login")} className="hidden rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-flex">Sign in</Link>
             <Link href={appPath("/register")} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5">Get started</Link>
           </div>

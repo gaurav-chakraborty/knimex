@@ -142,14 +142,14 @@ function LoginForm() {
         <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link href="/register" className="text-purple-700 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-medium underline decoration-dotted underline-offset-4 transition-colors">
+            <Link href={appPath("/register")} className="text-filex-blue-deep hover:text-filex-blue dark:text-filex-cyan dark:hover:text-filex-blue font-medium underline decoration-dotted underline-offset-4 transition-colors">
               Create one now
             </Link>
           </p>
         </div>
 
         <div className="mt-6 pt-6 border-t border-border">
-          <Link href="/">
+          <Link href={appPath("/")}>
             <Button variant="outline" className="w-full border-border hover:bg-accent/50 text-foreground">
               Back to Home
             </Button>

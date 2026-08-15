@@ -1,44 +1,25 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from "next";
+
+const baseUrl = "https://knimex.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://knimex.space' // Base domain for the project
+  const routes = [
+    { path: "/", changeFrequency: "daily" as const, priority: 1 },
+    { path: "/filex", changeFrequency: "daily" as const, priority: 0.9 },
+    { path: "/filex/pricing", changeFrequency: "monthly" as const, priority: 0.8 },
+    { path: "/filex/login", changeFrequency: "monthly" as const, priority: 0.6 },
+    { path: "/filex/register", changeFrequency: "monthly" as const, priority: 0.6 },
+    { path: "/filex/contact", changeFrequency: "monthly" as const, priority: 0.5 },
+    { path: "/filex/privacy", changeFrequency: "monthly" as const, priority: 0.3 },
+    { path: "/filex/terms", changeFrequency: "monthly" as const, priority: 0.3 },
+    { path: "/filex/security", changeFrequency: "monthly" as const, priority: 0.4 },
+    { path: "/filex/api-docs", changeFrequency: "monthly" as const, priority: 0.4 },
+  ];
 
-  return [
-    {
-      url: `${baseUrl}`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/login`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/register`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/contact`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/privacy`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/terms`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
-  ]
+  return routes.map(({ path, changeFrequency, priority }) => ({
+    url: `${baseUrl}${path}`,
+    lastModified: new Date(),
+    changeFrequency,
+    priority,
+  }));
 }

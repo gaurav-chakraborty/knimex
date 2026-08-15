@@ -5,6 +5,7 @@ import ErrorReporter from "@/components/ErrorReporter";
 import Script from "next/script";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import GlobalThemeControls from "@/components/global-theme-controls";
 import CookieBanner from "@/components/CookieBanner";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -68,6 +69,7 @@ export default function RootLayout({
               data-custom-data='{"appName": "KNIMEX", "version": "1.0.0", "greeting": "hi"}'
             /> */}
               {children}
+              <GlobalThemeControls />
               <CookieBanner />
               <Toaster />
               <Analytics />

@@ -59,7 +59,7 @@ export default function AccountPage() {
 function AccountSkeletonPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <Loader2 className="w-8 h-8 text-white animate-spin" />
+      <Loader2 className="w-8 h-8 text-filex-blue-deep dark:text-filex-cyan animate-spin" />
     </div>
   );
 }
@@ -164,7 +164,7 @@ function AccountPageContent() {
   const maxHistoryValue = Math.max(1, ...(history?.map((d) => d.filesProcessed) ?? [1]));
 
   return (
-    <div className="min-h-screen bg-background text-white selection:bg-purple-500/30 font-sans antialiased">
+    <div className="min-h-screen bg-background text-foreground selection:bg-purple-500/30 font-sans antialiased">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-600/10 blur-[150px] rounded-full" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 blur-[150px] rounded-full" />
@@ -172,13 +172,13 @@ function AccountPageContent() {
 
       <div className="relative max-w-5xl mx-auto px-6 py-16 space-y-10">
         <header className="flex justify-between items-center border-b border-border/70 pb-8">
-          <Link href="/" className="flex items-center gap-4 group">
+          <Link href={appPath("/")} className="flex items-center gap-4 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-600/20 group-hover:scale-110 transition-transform">
               <Shield className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-2xl font-black tracking-tighter uppercase leading-none">FileX</h1>
           </Link>
-          <Link href="/">
+          <Link href={appPath("/")}>
             <Button variant="outline" className="rounded-xl border-border bg-accent/50 hover:bg-accent">
               Back to App
             </Button>

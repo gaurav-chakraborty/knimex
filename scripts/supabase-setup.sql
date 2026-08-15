@@ -201,7 +201,7 @@ BEGIN
   RAISE NOTICE '';
   RAISE NOTICE 'Next steps:';
   RAISE NOTICE '1. Deploy your app to Vercel';
-  RAISE NOTICE '2. Test: curl https://knimex.space/api/db-health';
+  RAISE NOTICE '2. Test: curl https://knimex.com/filex/api/db-health';
   RAISE NOTICE '3. Verify all checks pass';
   RAISE NOTICE '===========================================';
 END $$;

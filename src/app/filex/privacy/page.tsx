@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Lock, EyeOff, Database, Mail } from "lucide-react";
 import Link from "next/link";
+import { appPath } from "@/lib/app-path";
 
 export default function PrivacyPolicy() {
   return (
@@ -15,7 +16,7 @@ export default function PrivacyPolicy() {
           <Card className="bg-accent/50 border-border text-foreground/80">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-foreground">
-                <Shield className="w-5 h-5 text-blue-400" />
+                <Shield className="w-5 h-5 text-filex-blue-deep dark:text-filex-cyan" />
                 Our Privacy Philosophy
               </CardTitle>
             </CardHeader>
@@ -28,7 +29,7 @@ export default function PrivacyPolicy() {
 
           <section className="space-y-6">
             <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Lock className="w-6 h-6 text-purple-400" />
+              <Lock className="w-6 h-6 text-purple-700 dark:text-purple-300" />
               Data Processing & Storage
             </h2>
             <div className="space-y-4">
@@ -55,7 +56,7 @@ export default function PrivacyPolicy() {
 
           <section className="space-y-6">
             <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Database className="w-6 h-6 text-blue-400" />
+              <Database className="w-6 h-6 text-filex-blue-deep dark:text-filex-cyan" />
               Account Information
             </h2>
             <p>
@@ -73,7 +74,7 @@ export default function PrivacyPolicy() {
 
           <section id="cookies" className="space-y-6">
             <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <EyeOff className="w-6 h-6 text-green-400" />
+              <EyeOff className="w-6 h-6 text-emerald-700 dark:text-emerald-300" />
               GDPR & CCPA Compliance
             </h2>
             <p>
@@ -89,7 +90,7 @@ export default function PrivacyPolicy() {
           <Card className="bg-blue-50 border-blue-600/30 text-blue-900 dark:bg-blue-500/10 dark:border-blue-500/30 dark:text-blue-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-foreground">
-                <Mail className="w-5 h-5 text-blue-400" />
+                <Mail className="w-5 h-5 text-filex-blue-deep dark:text-filex-cyan" />
                 Contact Us
               </CardTitle>
             </CardHeader>
@@ -97,14 +98,14 @@ export default function PrivacyPolicy() {
               <p>
                 For any privacy-related concerns or data requests, please contact our Data Protection Officer at:
                 <br />
-                <a href="mailto:contact@knimex.com" className="text-blue-700 dark:text-blue-400 font-bold hover:underline">contact@knimex.com</a>
+                <a href="mailto:contact@knimex.com" className="text-blue-700 dark:text-filex-blue-deep dark:text-filex-cyan font-bold hover:underline">contact@knimex.com</a>
               </p>
             </CardContent>
           </Card>
         </div>
 
         <div className="pt-12 border-t border-border/70 text-center">
-          <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-2">
+          <Link href={appPath("/")} className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-2">
             ← Back to Home
           </Link>
         </div>
