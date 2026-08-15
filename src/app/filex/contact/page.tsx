@@ -26,7 +26,7 @@ export default function ContactPage() {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(appPath("/api/feedback"), {
+      const response = await fetch(appPath("/api/enquiries"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(feedbackForm)
@@ -83,7 +83,7 @@ export default function ContactPage() {
 
           <Card className="md:col-span-2 bg-card border-border text-foreground/90">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold text-white">Send a Message</CardTitle>
+              <CardTitle className="text-2xl font-bold text-foreground">Send a Message</CardTitle>
               <CardDescription className="text-muted-foreground">
                 Tell us what's on your mind and we'll get back to you soon.
               </CardDescription>
@@ -94,7 +94,7 @@ export default function ContactPage() {
                   <div className="inline-flex p-4 rounded-full bg-green-500/20 text-green-400 mb-4">
                     <CheckCircle2 className="w-12 h-12" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white">Message Received!</h3>
+                  <h3 className="text-2xl font-bold text-foreground">Message Received!</h3>
                   <p className="text-muted-foreground max-w-xs mx-auto">
                     Thank you for reaching out. Our team will review your message and respond shortly.
                   </p>

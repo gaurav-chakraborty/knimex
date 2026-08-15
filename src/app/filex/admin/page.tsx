@@ -91,6 +91,33 @@ interface Feedback {
   createdAt: string;
 }
 
+interface Enquiry {
+  id: number;
+  userId: string | null;
+  name: string;
+  email: string;
+  type: string;
+  message: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface JobApplication {
+  id: number;
+  userId: string | null;
+  name: string;
+  email: string;
+  phone: string | null;
+  role: string;
+  portfolioUrl: string | null;
+  resumeUrl: string | null;
+  coverLetter: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface AnalyticsEvent {
   id: number;
   userId: string | null;
@@ -106,10 +133,12 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
+  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
+  const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const [analyticsEvents, setAnalyticsEvents] = useState<AnalyticsEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTab, setSelectedTab] = useState<"overview" | "users" | "feedback" | "analytics">("overview");
+  const [selectedTab, setSelectedTab] = useState<"overview" | "users" | "feedback" | "enquiries" | "applications" | "analytics">("overview");
 
   // User management dialogs
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -141,7 +170,7 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       
-      const [statsRes, usersRes, feedbackRes, analyticsRes] = await Promise.all([
+      const [statsRes, usersRes, feedbackRes, enquiriesRes, applicationsRes, analyticsRes] = await Promise.all([
         fetch(appPath("/api/admin/stats"), {
           headers: { Authorization: `Bearer ${token}` }
         }),
@@ -149,6 +178,12 @@ export default function AdminDashboard() {
           headers: { Authorization: `Bearer ${token}` }
         }),
         fetch(appPath("/api/admin/feedback?limit=10"), {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch(appPath("/api/admin/enquiries?limit=10"), {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch(appPath("/api/admin/job-applications?limit=10"), {
           headers: { Authorization: `Bearer ${token}` }
         }),
         fetch(appPath("/api/admin/analytics?limit=10"), {
@@ -169,6 +204,16 @@ export default function AdminDashboard() {
       if (feedbackRes.ok) {
         const feedbackData = await feedbackRes.json();
         setFeedback(feedbackData.feedback);
+      }
+
+      if (enquiriesRes.ok) {
+        const enquiriesData = await enquiriesRes.json();
+        setEnquiries(enquiriesData.enquiries);
+      }
+
+      if (applicationsRes.ok) {
+        const applicationsData = await applicationsRes.json();
+        setJobApplications(applicationsData.applications);
       }
 
       if (analyticsRes.ok) {
@@ -206,6 +251,40 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error("Error updating feedback:", error);
       toast.error("An error occurred");
+    }
+  };
+
+  const updateEnquiryStatus = async (id: number, status: string) => {
+    const token = localStorage.getItem("bearer_token");
+    try {
+      const response = await fetch(appPath(`/api/admin/enquiries/${id}`), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) throw new Error("Failed to update enquiry");
+      toast.success("Enquiry status updated.");
+      fetchDashboardData();
+    } catch (error) {
+      console.error("Error updating enquiry:", error);
+      toast.error("Failed to update enquiry status.");
+    }
+  };
+
+  const updateJobApplicationStatus = async (id: number, status: string) => {
+    const token = localStorage.getItem("bearer_token");
+    try {
+      const response = await fetch(appPath(`/api/admin/job-applications/${id}`), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) throw new Error("Failed to update job application");
+      toast.success("Application status updated.");
+      fetchDashboardData();
+    } catch (error) {
+      console.error("Error updating job application:", error);
+      toast.error("Failed to update application status.");
     }
   };
 
@@ -426,6 +505,8 @@ export default function AdminDashboard() {
             { id: "overview", label: "Overview", icon: BarChart3 },
             { id: "users", label: "Users", icon: Users },
             { id: "feedback", label: "Feedback", icon: MessageSquare },
+            { id: "enquiries", label: "Enquiries", icon: Mail },
+            { id: "applications", label: "Applications", icon: FileText },
             { id: "analytics", label: "Analytics", icon: Activity }
           ].map((tab) => (
             <Button
@@ -656,6 +737,71 @@ export default function AdminDashboard() {
                       <span className="text-xs text-muted-foreground ml-auto">
                         {new Date(item.createdAt).toLocaleString()}
                       </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {selectedTab === "enquiries" && (
+          <Card className="border-border bg-card/90 backdrop-blur-xl">
+            <CardHeader>
+              <CardTitle className="text-foreground">Enquiries</CardTitle>
+              <CardDescription className="text-muted-foreground">Durable contact submissions from users and visitors</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {enquiries.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No enquiries have been submitted.</p>}
+                {enquiries.map((item) => (
+                  <div key={item.id} className="rounded-lg border border-border bg-accent/50 p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-semibold text-foreground">{item.name}</p>
+                        <p className="text-sm text-muted-foreground">{item.email} · {item.type}</p>
+                      </div>
+                      <Badge className={getStatusColor(item.status)}>{item.status.replace(/_/g, " ").toUpperCase()}</Badge>
+                    </div>
+                    <p className="mt-4 whitespace-pre-wrap text-sm text-foreground/80">{item.message}</p>
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={() => updateEnquiryStatus(item.id, "in_progress")}>Mark In Progress</Button>
+                      <Button size="sm" variant="outline" onClick={() => updateEnquiryStatus(item.id, "resolved")}>Resolve</Button>
+                      <span className="ml-auto text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleString()}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {selectedTab === "applications" && (
+          <Card className="border-border bg-card/90 backdrop-blur-xl">
+            <CardHeader>
+              <CardTitle className="text-foreground">Job Applications</CardTitle>
+              <CardDescription className="text-muted-foreground">Securely stored applications available to authorized administrators</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {jobApplications.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No job applications have been submitted.</p>}
+                {jobApplications.map((item) => (
+                  <div key={item.id} className="rounded-lg border border-border bg-accent/50 p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-semibold text-foreground">{item.name}</p>
+                        <p className="text-sm text-muted-foreground">{item.email} · {item.role}</p>
+                      </div>
+                      <Badge className={getStatusColor(item.status)}>{item.status.replace(/_/g, " ").toUpperCase()}</Badge>
+                    </div>
+                    <p className="mt-4 whitespace-pre-wrap text-sm text-foreground/80 line-clamp-5">{item.coverLetter}</p>
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      {item.resumeUrl && <a href={item.resumeUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-filex-blue-deep hover:underline dark:text-filex-cyan">Resume</a>}
+                      {item.portfolioUrl && <a href={item.portfolioUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-filex-blue-deep hover:underline dark:text-filex-cyan">Portfolio</a>}
+                      <Button size="sm" variant="outline" onClick={() => updateJobApplicationStatus(item.id, "reviewing")}>Review</Button>
+                      <Button size="sm" variant="outline" onClick={() => updateJobApplicationStatus(item.id, "interview")}>Interview</Button>
+                      <Button size="sm" variant="outline" onClick={() => updateJobApplicationStatus(item.id, "accepted")}>Accept</Button>
+                      <span className="ml-auto text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleString()}</span>
                     </div>
                   </div>
                 ))}

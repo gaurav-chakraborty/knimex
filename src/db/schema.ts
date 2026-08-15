@@ -154,6 +154,59 @@ export const feedbackSubmissions = pgTable(
   ],
 );
 
+export const enquiries = pgTable(
+  'enquiries',
+  {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+    name: text('name').notNull(),
+    email: text('email').notNull(),
+    type: text('type').notNull().default('general'),
+    message: text('message').notNull(),
+    status: text('status').notNull().default('new'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('enquiries_user_id_idx').on(table.userId),
+    index('enquiries_status_idx').on(table.status),
+    index('enquiries_created_at_idx').on(table.createdAt),
+    check('enquiries_name_non_empty_check', sql`length(trim(${table.name})) > 0`),
+    check('enquiries_email_non_empty_check', sql`length(trim(${table.email})) > 3`),
+    check('enquiries_message_non_empty_check', sql`length(trim(${table.message})) > 0`),
+    check('enquiries_status_check', sql`${table.status} in ('new', 'in_progress', 'resolved')`),
+  ],
+);
+
+export const jobApplications = pgTable(
+  'job_applications',
+  {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+    name: text('name').notNull(),
+    email: text('email').notNull(),
+    phone: text('phone'),
+    role: text('role').notNull(),
+    portfolioUrl: text('portfolio_url'),
+    resumeUrl: text('resume_url'),
+    coverLetter: text('cover_letter').notNull(),
+    status: text('status').notNull().default('new'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('job_applications_user_id_idx').on(table.userId),
+    index('job_applications_status_idx').on(table.status),
+    index('job_applications_role_idx').on(table.role),
+    index('job_applications_created_at_idx').on(table.createdAt),
+    check('job_applications_name_non_empty_check', sql`length(trim(${table.name})) > 0`),
+    check('job_applications_email_non_empty_check', sql`length(trim(${table.email})) > 3`),
+    check('job_applications_role_non_empty_check', sql`length(trim(${table.role})) > 0`),
+    check('job_applications_cover_letter_non_empty_check', sql`length(trim(${table.coverLetter})) > 0`),
+    check('job_applications_status_check', sql`${table.status} in ('new', 'reviewing', 'interview', 'rejected', 'accepted', 'withdrawn')`),
+  ],
+);
+
 export const usageRecords = pgTable(
   'usage_records',
   {

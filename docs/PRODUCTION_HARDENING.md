@@ -15,3 +15,10 @@ The KNIMEX parent shell is hosted by the same Vercel project as FileX. The root 
 The Lovable KNIMEX site was temporarily published at `https://knimex-hub-ecosystem.lovable.app/` only to inspect and validate the initial parent design. It must remain online until the Vercel parent shell is verified in production; delete or unpublish the temporary Lovable publication only after explicit final confirmation.
 
 After the parent-shell release is verified, restore Vercel’s `Require Verified Commits` setting. The setting was temporarily relaxed only because the connected GitHub account could not sign the deployment commit from this environment. Deployment-triggering commits should use the repository-linked GitHub author identity rather than an unrecognized noreply alias.
+
+
+## Enquiries and job applications
+
+The `0007_enquiries_job_applications.sql` migration creates dedicated PostgreSQL tables for public enquiries and job applications. Both tables retain the submitting user when authenticated, preserve contact and submission details, include lifecycle status fields, and expose indexes for administrator pagination and filtering. Public submissions are written through `/filex/api/enquiries` and `/filex/api/job-applications`; authorized administrators retrieve them through `/filex/api/admin/enquiries` and `/filex/api/admin/job-applications`, with status updates available on their respective `[id]` routes.
+
+Apply `drizzle/0007_enquiries_job_applications.sql` after restoring a valid production `DATABASE_URL` and confirming `/filex/api/db-health` returns HTTP 200. The application build can compile without a database connection, but production persistence cannot be verified until the Postgres and Better Auth services are reachable.
