@@ -5,24 +5,24 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.2),rgba(0,0,0,0))]" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(14,116,144,0.12),transparent)]" />
       
-      <Card className="w-full max-w-md border-white/10 bg-zinc-900/80 backdrop-blur-xl shadow-2xl relative z-10">
+      <Card className="w-full max-w-md border-border bg-card/90 backdrop-blur-xl shadow-2xl relative z-10">
         <CardHeader className="text-center pb-6">
           <div className="mx-auto p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg shadow-blue-500/50 w-fit mb-4">
             <Search className="w-8 h-8 text-white" />
           </div>
-          <CardTitle className="text-6xl font-bold text-white mb-4">404</CardTitle>
-          <CardTitle className="text-3xl font-bold text-white">Page Not Found</CardTitle>
-          <CardDescription className="text-zinc-400 text-base mt-2">
+          <CardTitle className="text-6xl font-bold text-foreground mb-4">404</CardTitle>
+          <CardTitle className="text-3xl font-bold text-foreground">Page Not Found</CardTitle>
+          <CardDescription className="text-muted-foreground text-base mt-2">
             Looks like you've wandered into uncharted territory. This page doesn't exist!
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-            <p className="text-sm text-blue-300 text-center">
+            <p className="text-sm text-blue-800 dark:text-blue-300 text-center">
               💡 The page you're looking for might have been moved or deleted.
             </p>
           </div>
@@ -37,9 +37,9 @@ export default function NotFound() {
             </Button>
           </Link>
 
-          <p className="text-xs text-zinc-500 text-center mt-4">
+          <p className="text-xs text-muted-foreground text-center mt-4">
             Need help? Contact us at{" "}
-            <a href="mailto:contact@knimex.space" className="text-purple-400 hover:text-purple-300 underline">
+            <a href="mailto:contact@knimex.space" className="text-purple-700 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 underline">
               contact@knimex.space
             </a>
           </p>

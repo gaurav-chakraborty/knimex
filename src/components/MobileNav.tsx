@@ -34,22 +34,22 @@ export default function MobileNav({ links, footer }: MobileNavProps) {
         <Button
           variant="outline"
           size="icon"
-          className="md:hidden bg-white/5 border-white/10 hover:bg-white/10 rounded-xl"
+          className="md:hidden bg-background/80 border-border text-foreground hover:bg-accent rounded-xl"
         >
           <Menu className="w-5 h-5" />
           <span className="sr-only">Open menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="bg-[#0b1120] border-white/10 text-white w-[80%]">
+      <SheetContent side="right" className="bg-popover border-border text-popover-foreground w-[80%]">
         <SheetHeader>
-          <SheetTitle className="text-white">Menu</SheetTitle>
+          <SheetTitle className="text-popover-foreground">Menu</SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col gap-1 px-4">
           {links.map((link) => (
             <SheetClose asChild key={link.href}>
               <Link
                 href={link.href}
-                className="py-3 px-3 rounded-xl text-base font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                className="py-3 px-3 rounded-xl text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
               >
                 {link.label}
               </Link>

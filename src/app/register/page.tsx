@@ -63,17 +63,17 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-blue-600/10 animate-gradient-x" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.2),rgba(0,0,0,0))]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(14,116,144,0.12),transparent)]" />
       
-      <Card className="w-full max-w-md border-white/10 bg-zinc-900/80 backdrop-blur-xl shadow-2xl relative z-10">
+      <Card className="w-full max-w-md border-border bg-card/90 backdrop-blur-xl shadow-2xl relative z-10">
         <CardHeader className="space-y-3 text-center pb-6">
           <div className="mx-auto p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg shadow-purple-500/50 w-fit">
             <UserPlus className="w-8 h-8 text-white" />
           </div>
-          <CardTitle className="text-3xl font-bold text-white">Create Account</CardTitle>
-          <CardDescription className="text-zinc-400 text-base">
+          <CardTitle className="text-3xl font-bold text-foreground">Create Account</CardTitle>
+          <CardDescription className="text-muted-foreground text-base">
             Join KNIMEX and start editing metadata like a pro
           </CardDescription>
         </CardHeader>
@@ -81,9 +81,9 @@ export default function RegisterPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-zinc-300 font-medium">Name</Label>
+              <Label htmlFor="name" className="text-foreground/80 font-medium">Name</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="name"
                   type="text"
@@ -91,15 +91,15 @@ export default function RegisterPage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  className="pl-10 bg-zinc-800/50 border-white/10 text-white placeholder:text-zinc-500 focus:border-purple-500/50 focus:ring-purple-500/20"
+                  className="pl-10 bg-background border-input text-foreground placeholder:text-muted-foreground focus:border-purple-500/50 focus:ring-purple-500/20"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-zinc-300 font-medium">Email</Label>
+              <Label htmlFor="email" className="text-foreground/80 font-medium">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
@@ -107,15 +107,15 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
-                  className="pl-10 bg-zinc-800/50 border-white/10 text-white placeholder:text-zinc-500 focus:border-purple-500/50 focus:ring-purple-500/20"
+                  className="pl-10 bg-background border-input text-foreground placeholder:text-muted-foreground focus:border-purple-500/50 focus:ring-purple-500/20"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-zinc-300 font-medium">Password</Label>
+              <Label htmlFor="password" className="text-foreground/80 font-medium">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type="password"
@@ -124,16 +124,16 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   autoComplete="off"
-                  className="pl-10 bg-zinc-800/50 border-white/10 text-white placeholder:text-zinc-500 focus:border-purple-500/50 focus:ring-purple-500/20"
+                  className="pl-10 bg-background border-input text-foreground placeholder:text-muted-foreground focus:border-purple-500/50 focus:ring-purple-500/20"
                 />
               </div>
-              <p className="text-xs text-zinc-500">Must be at least 8 characters long</p>
+              <p className="text-xs text-muted-foreground">Must be at least 8 characters long</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-zinc-300 font-medium">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-foreground/80 font-medium">Confirm Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -142,7 +142,7 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   required
                   autoComplete="off"
-                  className="pl-10 bg-zinc-800/50 border-white/10 text-white placeholder:text-zinc-500 focus:border-purple-500/50 focus:ring-purple-500/20"
+                  className="pl-10 bg-background border-input text-foreground placeholder:text-muted-foreground focus:border-purple-500/50 focus:ring-purple-500/20"
                 />
               </div>
             </div>
@@ -168,17 +168,17 @@ export default function RegisterPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link href="/login" className="text-purple-400 hover:text-purple-300 font-medium underline decoration-dotted underline-offset-4 transition-colors">
+              <Link href="/login" className="text-purple-700 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-medium underline decoration-dotted underline-offset-4 transition-colors">
                 Log in instead
               </Link>
             </p>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-white/10">
+          <div className="mt-6 pt-6 border-t border-border">
             <Link href="/">
-              <Button variant="outline" className="w-full border-white/10 hover:bg-white/5 text-white">
+              <Button variant="outline" className="w-full border-border hover:bg-accent/50 text-foreground">
                 Back to Home
               </Button>
             </Link>

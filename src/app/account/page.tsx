@@ -43,7 +43,7 @@ interface UsageHistoryDay {
 }
 
 const PLAN_LABELS: Record<string, { label: string; color: string }> = {
-  free: { label: "Starter", color: "bg-slate-700 text-slate-200" },
+  free: { label: "Starter", color: "bg-slate-700 text-foreground/90" },
   pro: { label: "Pro", color: "bg-gradient-to-r from-purple-600 to-blue-600 text-white" },
   enterprise: { label: "Enterprise", color: "bg-gradient-to-r from-amber-500 to-orange-600 text-white" },
 };
@@ -58,7 +58,7 @@ export default function AccountPage() {
 
 function AccountSkeletonPage() {
   return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+    <div className="min-h-screen bg-background flex items-center justify-center">
       <Loader2 className="w-8 h-8 text-white animate-spin" />
     </div>
   );
@@ -164,14 +164,14 @@ function AccountPageContent() {
   const maxHistoryValue = Math.max(1, ...(history?.map((d) => d.filesProcessed) ?? [1]));
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white selection:bg-purple-500/30 font-sans antialiased">
+    <div className="min-h-screen bg-background text-white selection:bg-purple-500/30 font-sans antialiased">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-600/10 blur-[150px] rounded-full" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 blur-[150px] rounded-full" />
       </div>
 
       <div className="relative max-w-5xl mx-auto px-6 py-16 space-y-10">
-        <header className="flex justify-between items-center border-b border-white/5 pb-8">
+        <header className="flex justify-between items-center border-b border-border/70 pb-8">
           <Link href="/" className="flex items-center gap-4 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-600/20 group-hover:scale-110 transition-transform">
               <Shield className="w-6 h-6 text-white" />
@@ -179,7 +179,7 @@ function AccountPageContent() {
             <h1 className="text-2xl font-black tracking-tighter uppercase leading-none">FileX</h1>
           </Link>
           <Link href="/">
-            <Button variant="outline" className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10">
+            <Button variant="outline" className="rounded-xl border-border bg-accent/50 hover:bg-accent">
               Back to App
             </Button>
           </Link>
@@ -187,12 +187,12 @@ function AccountPageContent() {
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <h2 className="text-3xl font-black tracking-tight mb-1">Account &amp; Billing</h2>
-          <p className="text-slate-400">Manage your plan, usage, and subscription.</p>
+          <p className="text-muted-foreground">Manage your plan, usage, and subscription.</p>
         </motion.div>
 
         {loading ? (
           <div className="grid md:grid-cols-2 gap-6">
-            <Card className="bg-white/5 border-white/10 rounded-2xl">
+            <Card className="bg-accent/50 border-border rounded-2xl">
               <CardHeader className="space-y-3">
                 <Skeleton className="h-6 w-32" />
                 <Skeleton className="h-4 w-48" />
@@ -201,7 +201,7 @@ function AccountPageContent() {
                 <Skeleton className="h-10 w-full rounded-xl" />
               </CardContent>
             </Card>
-            <Card className="bg-white/5 border-white/10 rounded-2xl">
+            <Card className="bg-accent/50 border-border rounded-2xl">
               <CardHeader className="space-y-3">
                 <Skeleton className="h-6 w-32" />
                 <Skeleton className="h-4 w-48" />
@@ -213,7 +213,7 @@ function AccountPageContent() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
-            <Card className="bg-white/5 border-white/10 backdrop-blur-xl rounded-2xl">
+            <Card className="bg-accent/50 border-border backdrop-blur-xl rounded-2xl">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-white">
@@ -223,13 +223,13 @@ function AccountPageContent() {
                     {planInfo.label}
                   </Badge>
                 </div>
-                <CardDescription className="text-slate-400">
+                <CardDescription className="text-muted-foreground">
                   Signed in as {session.user.email}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
                 {status?.subscriptionStatus === "active" && status.currentPeriodEnd && (
-                  <p className="text-sm text-slate-400 flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     Renews {new Date(status.currentPeriodEnd).toLocaleDateString()}
                   </p>
@@ -254,7 +254,7 @@ function AccountPageContent() {
                     onClick={handleManageBilling}
                     disabled={actionLoading === "portal"}
                     variant="outline"
-                    className="w-full rounded-xl border-white/10 bg-white/5 hover:bg-white/10 font-bold"
+                    className="w-full rounded-xl border-border bg-accent/50 hover:bg-accent font-bold"
                   >
                     {actionLoading === "portal" ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -273,10 +273,10 @@ function AccountPageContent() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/5 border-white/10 backdrop-blur-xl rounded-2xl">
+            <Card className="bg-accent/50 border-border backdrop-blur-xl rounded-2xl">
               <CardHeader>
                 <CardTitle className="text-white">Today&apos;s Usage</CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardDescription className="text-muted-foreground">
                   {status?.usage.limit === null
                     ? "Unlimited processing on your plan"
                     : `${status?.usage.used ?? 0} of ${status?.usage.limit ?? 5} files processed`}
@@ -284,7 +284,7 @@ function AccountPageContent() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {status?.usage.limit !== null && (
-                  <Progress value={usagePct} className="h-2 bg-white/10" />
+                  <Progress value={usagePct} className="h-2 bg-accent" />
                 )}
                 {status?.usage.limit !== null && (status?.usage.remaining ?? 0) === 0 && (
                   <p className="text-sm text-rose-400">
@@ -294,12 +294,12 @@ function AccountPageContent() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/5 border-white/10 backdrop-blur-xl rounded-2xl md:col-span-2">
+            <Card className="bg-accent/50 border-border backdrop-blur-xl rounded-2xl md:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
                   <BarChart3 className="w-5 h-5 text-blue-400" /> Last 7 Days
                 </CardTitle>
-                <CardDescription className="text-slate-400">Files processed per day</CardDescription>
+                <CardDescription className="text-muted-foreground">Files processed per day</CardDescription>
               </CardHeader>
               <CardContent>
                 {history ? (
@@ -311,7 +311,7 @@ function AccountPageContent() {
                           style={{ height: `${(day.filesProcessed / maxHistoryValue) * 100}%` }}
                           title={`${day.filesProcessed} files`}
                         />
-                        <span className="text-[10px] text-slate-500 font-medium">
+                        <span className="text-[10px] text-muted-foreground font-medium">
                           {new Date(day.date + "T00:00:00Z").toLocaleDateString(undefined, { weekday: "short" })}
                         </span>
                       </div>

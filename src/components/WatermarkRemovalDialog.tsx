@@ -237,13 +237,13 @@ export default function WatermarkRemovalDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl border-white/10 bg-[#08111f] text-white shadow-2xl shadow-cyan-950/40">
+      <DialogContent className="max-w-5xl border-border bg-popover text-popover-foreground shadow-2xl shadow-cyan-950/40">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-cyan-400/10 p-3 text-cyan-300"><Eraser className="h-5 w-5" /></div>
+            <div className="rounded-2xl bg-cyan-400/10 p-3 text-cyan-700 dark:text-cyan-300"><Eraser className="h-5 w-5" /></div>
             <div>
               <DialogTitle className="text-2xl font-black tracking-tight">Watermark Studio</DialogTitle>
-              <DialogDescription className="mt-1 text-slate-400">
+              <DialogDescription className="mt-1 text-muted-foreground">
                 Select a simple overlay on an image you own or are authorized to edit. Processing stays in this browser.
               </DialogDescription>
             </div>
@@ -251,16 +251,16 @@ export default function WatermarkRemovalDialog({
         </DialogHeader>
 
         {!isImage ? (
-          <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-6 text-sm text-amber-100">
+          <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-6 text-sm text-amber-800 dark:text-amber-100">
             Watermark cleanup is currently available for image files only. Choose a JPG, PNG, WEBP, GIF, BMP, or TIFF file.
           </div>
         ) : (
           <div className="space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-xs text-slate-300">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-muted/40 p-4 text-xs text-foreground/80">
               <span className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-400" /> Private, in-browser editing</span>
-              <Badge variant="outline" className="border-cyan-400/30 text-cyan-200">{file?.name}</Badge>
+              <Badge variant="outline" className="border-cyan-400/30 text-cyan-700 dark:text-cyan-200">{file?.name}</Badge>
             </div>
-            <div className="overflow-auto rounded-3xl border border-white/10 bg-black/30 p-3">
+            <div className="overflow-auto rounded-3xl border border-border bg-black/30 p-3">
               <canvas
                 ref={canvasRef}
                 aria-label="Image watermark selection canvas"
@@ -274,19 +274,19 @@ export default function WatermarkRemovalDialog({
             <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="watermark-feather" className="text-xs font-bold uppercase tracking-widest text-slate-400">Blend softness</Label>
-                  <span className="text-xs tabular-nums text-cyan-200">{feather}px</span>
+                  <Label htmlFor="watermark-feather" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Blend softness</Label>
+                  <span className="text-xs tabular-nums text-cyan-700 dark:text-cyan-200">{feather}px</span>
                 </div>
                 <Slider id="watermark-feather" min={0} max={40} step={1} value={[feather]} onValueChange={(value) => setFeather(value[0] ?? 12)} aria-label="Watermark blend softness" />
-                <p className="text-xs text-slate-500">Best for small logos or text on relatively even backgrounds. Complex scenes may need a dedicated retouching tool.</p>
+                <p className="text-xs text-muted-foreground">Best for small logos or text on relatively even backgrounds. Complex scenes may need a dedicated retouching tool.</p>
               </div>
-              <Button variant="outline" onClick={resetSelection} className="border-white/10 text-slate-200 hover:bg-white/5"><RotateCcw className="mr-2 h-4 w-4" />Reset selection</Button>
+              <Button variant="outline" onClick={resetSelection} className="border-border text-foreground/90 hover:bg-accent/50"><RotateCcw className="mr-2 h-4 w-4" />Reset selection</Button>
             </div>
           </div>
         )}
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-slate-300 hover:bg-white/5">Cancel</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-foreground/80 hover:bg-accent/50">Cancel</Button>
           {isImage && <Button onClick={handleApply} disabled={!isReady || !selection} className="bg-cyan-300 text-slate-950 hover:bg-cyan-200"><CheckCircle2 className="mr-2 h-4 w-4" />Apply locally</Button>}
         </DialogFooter>
       </DialogContent>

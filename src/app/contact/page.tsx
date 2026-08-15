@@ -45,10 +45,10 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background text-foreground/90 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <Link href="/">
-          <Button variant="ghost" className="mb-8 text-slate-400 hover:text-white">
+          <Button variant="ghost" className="mb-8 text-muted-foreground hover:text-foreground">
             <ChevronLeft className="mr-2 h-4 w-4" />
             Back to Home
           </Button>
@@ -58,33 +58,33 @@ export default function ContactPage() {
           <div className="md:col-span-1 space-y-6">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold text-white">Connect with Us</h1>
-              <p className="text-slate-400">
+              <p className="text-muted-foreground">
                 We're always excited to hear from our users, creators, and partners.
               </p>
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3">
+              <div className="p-4 rounded-xl bg-card border border-border flex items-center gap-3">
                 <Mail className="w-5 h-5 text-purple-400" />
                 <div>
-                  <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Email</p>
-                  <p className="text-sm text-slate-200">contact@knimex.com</p>
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Email</p>
+                  <p className="text-sm text-foreground/90">contact@knimex.com</p>
                 </div>
               </div>
-              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3">
+              <div className="p-4 rounded-xl bg-card border border-border flex items-center gap-3">
                 <MessageSquare className="w-5 h-5 text-blue-400" />
                 <div>
-                  <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Support</p>
-                  <p className="text-sm text-slate-200">Available 24/7</p>
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Support</p>
+                  <p className="text-sm text-foreground/90">Available 24/7</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <Card className="md:col-span-2 bg-slate-900 border-slate-800 text-slate-200">
+          <Card className="md:col-span-2 bg-card border-border text-foreground/90">
             <CardHeader>
               <CardTitle className="text-2xl font-bold text-white">Send a Message</CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-muted-foreground">
                 Tell us what's on your mind and we'll get back to you soon.
               </CardDescription>
             </CardHeader>
@@ -95,7 +95,7 @@ export default function ContactPage() {
                     <CheckCircle2 className="w-12 h-12" />
                   </div>
                   <h3 className="text-2xl font-bold text-white">Message Received!</h3>
-                  <p className="text-slate-400 max-w-xs mx-auto">
+                  <p className="text-muted-foreground max-w-xs mx-auto">
                     Thank you for reaching out. Our team will review your message and respond shortly.
                   </p>
                   <Button 
@@ -115,11 +115,11 @@ export default function ContactPage() {
                       className={`p-3 rounded-lg border transition-all duration-200 ${
                         feedbackForm.type === "review"
                           ? "border-yellow-500/50 bg-yellow-500/10 text-yellow-200"
-                          : "border-slate-800 bg-slate-950/50 hover:border-slate-700"
+                          : "border-border bg-muted/40 hover:border-border"
                       }`}
                     >
                       <div className="flex flex-col items-center gap-1 text-center">
-                        <Star className={`w-5 h-5 ${feedbackForm.type === "review" ? "text-yellow-400" : "text-slate-500"}`} />
+                        <Star className={`w-5 h-5 ${feedbackForm.type === "review" ? "text-yellow-400" : "text-muted-foreground"}`} />
                         <span className="text-xs font-semibold">Review</span>
                       </div>
                     </button>
@@ -129,11 +129,11 @@ export default function ContactPage() {
                       className={`p-3 rounded-lg border transition-all duration-200 ${
                         feedbackForm.type === "feature"
                           ? "border-blue-500/50 bg-blue-500/10 text-blue-200"
-                          : "border-slate-800 bg-slate-950/50 hover:border-slate-700"
+                          : "border-border bg-muted/40 hover:border-border"
                       }`}
                     >
                       <div className="flex flex-col items-center gap-1 text-center">
-                        <Lightbulb className={`w-5 h-5 ${feedbackForm.type === "feature" ? "text-blue-400" : "text-slate-500"}`} />
+                        <Lightbulb className={`w-5 h-5 ${feedbackForm.type === "feature" ? "text-blue-400" : "text-muted-foreground"}`} />
                         <span className="text-xs font-semibold">Feature</span>
                       </div>
                     </button>
@@ -143,11 +143,11 @@ export default function ContactPage() {
                       className={`p-3 rounded-lg border transition-all duration-200 ${
                         feedbackForm.type === "partnership"
                           ? "border-purple-500/50 bg-purple-500/10 text-purple-200"
-                          : "border-slate-800 bg-slate-950/50 hover:border-slate-700"
+                          : "border-border bg-muted/40 hover:border-border"
                       }`}
                     >
                       <div className="flex flex-col items-center gap-1 text-center">
-                        <Handshake className={`w-5 h-5 ${feedbackForm.type === "partnership" ? "text-purple-400" : "text-slate-500"}`} />
+                        <Handshake className={`w-5 h-5 ${feedbackForm.type === "partnership" ? "text-purple-400" : "text-muted-foreground"}`} />
                         <span className="text-xs font-semibold">Partner</span>
                       </div>
                     </button>
@@ -162,7 +162,7 @@ export default function ContactPage() {
                         onChange={(e) => setFeedbackForm({...feedbackForm, name: e.target.value})}
                         placeholder="Your name"
                         required
-                        className="bg-slate-950 border-slate-800 text-white"
+                        className="bg-background border-border text-foreground"
                       />
                     </div>
                     <div className="space-y-2">
@@ -174,7 +174,7 @@ export default function ContactPage() {
                         onChange={(e) => setFeedbackForm({...feedbackForm, email: e.target.value})}
                         placeholder="your@email.com"
                         required
-                        className="bg-slate-950 border-slate-800 text-white"
+                        className="bg-background border-border text-foreground"
                       />
                     </div>
                   </div>
@@ -188,7 +188,7 @@ export default function ContactPage() {
                       placeholder="How can we help?"
                       rows={5}
                       required
-                      className="bg-slate-950 border-slate-800 text-white"
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
 

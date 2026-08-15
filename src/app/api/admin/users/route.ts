@@ -1,140 +1,82 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { randomBytes } from 'crypto';
+import { count, desc, eq, like, or } from 'drizzle-orm';
 import { db } from '@/db';
 import { user } from '@/db/schema';
-import { like, or, desc, count, eq } from 'drizzle-orm';
 import { checkAdminAccess, auth } from '@/lib/auth';
 import { logAdminAction } from '@/lib/admin-audit';
+import { createUserSchema, privateJson, validationError } from '@/lib/admin-validation';
+import { adminUserFields } from '@/lib/admin-user-select';
 
-const VALID_ROLES = ['user', 'admin'];
-const VALID_PLANS = ['free', 'pro', 'enterprise'];
+function parseBoundedInteger(value: string | null, fallback: number, minimum: number, maximum: number) {
+  if (!value || !/^\d+$/.test(value)) return fallback;
+  return Math.min(Math.max(Number.parseInt(value, 10), minimum), maximum);
+}
 
-// Input sanitization helper
-function sanitizeSearchInput(input: string | null): string | null {
-  if (!input) return null;
-
-  // Trim and limit length to prevent abuse
-  const trimmed = input.trim().slice(0, 100);
-
-  // Remove special SQL characters that could cause issues
-  const sanitized = trimmed.replace(/[%_\\]/g, '\\$&');
-
-  return sanitized || null;
+function sanitizeSearchInput(input: string | null) {
+  const trimmed = input?.trim().slice(0, 100) ?? '';
+  return trimmed ? trimmed.replace(/[%_\\]/g, '\\$&') : null;
 }
 
 export async function GET(request: NextRequest) {
   try {
-    // Check admin access
     const adminCheck = await checkAdminAccess();
-
     if (!adminCheck.isAdmin) {
-      return NextResponse.json(
+      return privateJson(
         { error: adminCheck.error || 'Unauthorized', code: adminCheck.user ? 'FORBIDDEN' : 'UNAUTHORIZED' },
-        { status: adminCheck.user ? 403 : 401 }
+        adminCheck.user ? 403 : 401,
       );
     }
 
-    // Parse query parameters
     const { searchParams } = new URL(request.url);
-    const limit = Math.min(parseInt(searchParams.get('limit') ?? '20'), 100);
-    const offset = parseInt(searchParams.get('offset') ?? '0');
-    const rawSearch = searchParams.get('search');
+    const limit = parseBoundedInteger(searchParams.get('limit'), 20, 1, 100);
+    const offset = parseBoundedInteger(searchParams.get('offset'), 0, 0, 100_000);
+    const search = sanitizeSearchInput(searchParams.get('search'));
+    const filter = search
+      ? or(like(user.name, `%${search}%`), like(user.email, `%${search}%`))
+      : undefined;
 
-    // Sanitize search input
-    const search = sanitizeSearchInput(rawSearch);
+    const [totalResult, users] = await Promise.all([
+      db.select({ count: count() }).from(user).where(filter),
+      db.select(adminUserFields).from(user).where(filter).orderBy(desc(user.createdAt)).limit(limit).offset(offset),
+    ]);
 
-    // Build search filter
-    const filter = search ? or(
-      like(user.name, `%${search}%`),
-      like(user.email, `%${search}%`)
-    ) : undefined;
-
-    // Get total count
-    const totalResult = await db.select({ count: count() })
-      .from(user)
-      .where(filter);
-    const total = totalResult[0].count;
-
-    // Execute query with pagination and ordering
-    const users = await db.select({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      emailVerified: user.emailVerified,
-      image: user.image,
-      role: user.role,
-      plan: user.plan,
-      subscriptionStatus: user.subscriptionStatus,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    }).from(user)
-      .where(filter)
-      .orderBy(desc(user.createdAt))
-      .limit(limit)
-      .offset(offset);
-
-    return NextResponse.json({
+    return privateJson({
       users,
-      total,
-    }, { status: 200 });
-
+      total: totalResult[0]?.count ?? 0,
+    });
   } catch (error) {
     console.error('GET users error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error') },
-      { status: 500 }
-    );
+    return privateJson({ error: 'User directory unavailable', code: 'INTERNAL_SERVER_ERROR' }, 500);
   }
 }
 
-/**
- * Create a user, or — when `upsert` is true (the default) and a user with
- * that email already exists — update its name/role/plan instead of
- * failing. New accounts are created through better-auth's own sign-up
- * endpoint so the password is hashed the same way a real signup would be;
- * we generate a random temporary password and return it once so the admin
- * can hand it off, rather than inventing our own credential storage.
- */
 export async function POST(request: NextRequest) {
   try {
     const adminCheck = await checkAdminAccess();
-
     if (!adminCheck.isAdmin || !adminCheck.user) {
-      return NextResponse.json(
+      return privateJson(
         { error: adminCheck.error || 'Unauthorized', code: adminCheck.user ? 'FORBIDDEN' : 'UNAUTHORIZED' },
-        { status: adminCheck.user ? 403 : 401 }
+        adminCheck.user ? 403 : 401,
       );
     }
 
-    const body = await request.json().catch(() => ({}));
-    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
-    const name = typeof body.name === 'string' ? body.name.trim() : '';
-    const role = VALID_ROLES.includes(body.role) ? body.role : 'user';
-    const plan = VALID_PLANS.includes(body.plan) ? body.plan : 'free';
-    const upsert = body.upsert !== false;
+    const parsed = createUserSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) return validationError(parsed.error);
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: 'A valid email is required', code: 'INVALID_EMAIL' }, { status: 400 });
-    }
-    if (!name) {
-      return NextResponse.json({ error: 'Name is required', code: 'MISSING_NAME' }, { status: 400 });
-    }
-
+    const { email, name, role, plan, upsert } = parsed.data;
     const [existing] = await db.select({ id: user.id }).from(user).where(eq(user.email, email)).limit(1);
 
     if (existing) {
       if (!upsert) {
-        return NextResponse.json(
-          { error: 'A user with this email already exists', code: 'ALREADY_EXISTS' },
-          { status: 409 }
-        );
+        return privateJson({ error: 'A user with this email already exists', code: 'ALREADY_EXISTS' }, 409);
       }
 
       const [updated] = await db
         .update(user)
         .set({ name, role, plan, updatedAt: new Date() })
         .where(eq(user.id, existing.id))
-        .returning();
+        .returning(adminUserFields);
 
       await logAdminAction({
         adminId: adminCheck.user.id,
@@ -143,32 +85,31 @@ export async function POST(request: NextRequest) {
         details: { email, role, plan },
       });
 
-      return NextResponse.json({ user: updated, created: false }, { status: 200 });
+      return privateJson({ user: updated, created: false });
     }
 
-    const temporaryPassword = randomBytes(18).toString('base64url');
-    let signUpResult;
+    const temporaryPassword = randomBytes(24).toString('base64url');
+    let signUpResult: Awaited<ReturnType<typeof auth.api.signUpEmail>>;
     try {
       signUpResult = await auth.api.signUpEmail({ body: { name, email, password: temporaryPassword } });
-    } catch (err) {
-      return NextResponse.json(
-        { error: 'Failed to create user: ' + (err instanceof Error ? err.message : String(err)), code: 'SIGNUP_FAILED' },
-        { status: 400 }
-      );
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+        return privateJson({ error: 'A user with this email already exists', code: 'ALREADY_EXISTS' }, 409);
+      }
+      console.error('Admin user signup failed:', error);
+      return privateJson({ error: 'User creation failed', code: 'SIGNUP_FAILED' }, 400);
     }
 
     const newUserId = signUpResult?.user?.id;
     if (!newUserId) {
-      return NextResponse.json({ error: 'User creation did not return an id', code: 'SIGNUP_INCOMPLETE' }, { status: 500 });
+      return privateJson({ error: 'User creation did not return an id', code: 'SIGNUP_INCOMPLETE' }, 500);
     }
 
-    // signUpEmail always creates a plain user/free-plan row — apply the
-    // admin-specified role/plan on top of it.
     const [finalUser] = await db
       .update(user)
       .set({ role, plan, updatedAt: new Date() })
       .where(eq(user.id, newUserId))
-      .returning();
+      .returning(adminUserFields);
 
     await logAdminAction({
       adminId: adminCheck.user.id,
@@ -177,20 +118,17 @@ export async function POST(request: NextRequest) {
       details: { email, role, plan },
     });
 
-    return NextResponse.json(
+    return privateJson(
       {
         user: finalUser,
         created: true,
         temporaryPassword,
-        note: 'Share this temporary password with the user securely — they should change it after signing in.',
+        note: 'Share this temporary password with the user securely. It should be changed after first sign-in.',
       },
-      { status: 201 }
+      201,
     );
   } catch (error) {
     console.error('POST users error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error') },
-      { status: 500 }
-    );
+    return privateJson({ error: 'User management unavailable', code: 'INTERNAL_SERVER_ERROR' }, 500);
   }
 }

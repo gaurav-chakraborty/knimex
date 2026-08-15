@@ -312,8 +312,8 @@ export default function AdminDashboard() {
 
   if (isPending || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black flex items-center justify-center">
-        <div className="text-white text-xl">Loading dashboard...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground text-xl">Loading dashboard...</div>
       </div>
     );
   }
@@ -341,23 +341,23 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black">
+    <div className="min-h-screen bg-background">
       <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-blue-600/10 animate-gradient-x" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.2),rgba(0,0,0,0))]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(14,116,144,0.12),transparent)]" />
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">
+            <h1 className="text-4xl font-bold text-foreground mb-2">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
                 Admin Dashboard
               </span>
             </h1>
-            <p className="text-zinc-400">Monitor users, analytics, and feedback</p>
+            <p className="text-muted-foreground">Monitor users, analytics, and feedback</p>
           </div>
           <Link href="/">
-            <Button variant="outline" className="border-white/10 hover:bg-white/5 text-white">
+            <Button variant="outline" className="border-border hover:bg-accent/50 text-foreground">
               Back to Home
             </Button>
           </Link>
@@ -366,55 +366,55 @@ export default function AdminDashboard() {
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
+            <Card className="border-border bg-card/90 backdrop-blur-xl">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-zinc-400">Total Users</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
                   <Users className="w-5 h-5 text-purple-400" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-white">{stats.totalUsers}</div>
-                <p className="text-xs text-zinc-500 mt-2">+{stats.todaysRegistrations} today</p>
+                <div className="text-3xl font-bold text-foreground">{stats.totalUsers}</div>
+                <p className="text-xs text-muted-foreground mt-2">+{stats.todaysRegistrations} today</p>
               </CardContent>
             </Card>
 
-            <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
+            <Card className="border-border bg-card/90 backdrop-blur-xl">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-zinc-400">Total Events</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Events</CardTitle>
                   <Activity className="w-5 h-5 text-blue-400" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-white">{stats.totalEvents}</div>
-                <p className="text-xs text-zinc-500 mt-2">All time analytics</p>
+                <div className="text-3xl font-bold text-foreground">{stats.totalEvents}</div>
+                <p className="text-xs text-muted-foreground mt-2">All time analytics</p>
               </CardContent>
             </Card>
 
-            <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
+            <Card className="border-border bg-card/90 backdrop-blur-xl">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-zinc-400">Active Sessions</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Active Sessions</CardTitle>
                   <TrendingUp className="w-5 h-5 text-green-400" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-white">{stats.activeSessions}</div>
-                <p className="text-xs text-zinc-500 mt-2">Currently online</p>
+                <div className="text-3xl font-bold text-foreground">{stats.activeSessions}</div>
+                <p className="text-xs text-muted-foreground mt-2">Currently online</p>
               </CardContent>
             </Card>
 
-            <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
+            <Card className="border-border bg-card/90 backdrop-blur-xl">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-zinc-400">Feedback Items</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Feedback Items</CardTitle>
                   <MessageSquare className="w-5 h-5 text-pink-400" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-white">{feedback.length}</div>
-                <p className="text-xs text-zinc-500 mt-2">Awaiting review</p>
+                <div className="text-3xl font-bold text-foreground">{feedback.length}</div>
+                <p className="text-xs text-muted-foreground mt-2">Awaiting review</p>
               </CardContent>
             </Card>
           </div>
@@ -434,7 +434,7 @@ export default function AdminDashboard() {
               variant={selectedTab === tab.id ? "default" : "outline"}
               className={selectedTab === tab.id 
                 ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                : "border-white/10 hover:bg-white/5 text-white"
+                : "border-border hover:bg-accent/50 text-foreground"
               }
             >
               <tab.icon className="w-4 h-4 mr-2" />
@@ -447,28 +447,28 @@ export default function AdminDashboard() {
         {selectedTab === "overview" && stats && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
+              <Card className="border-border bg-card/90 backdrop-blur-xl">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-zinc-400">Estimated MRR</CardTitle>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Estimated MRR</CardTitle>
                     <DollarSign className="w-5 h-5 text-emerald-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-white">
+                  <div className="text-3xl font-bold text-foreground">
                     ${(stats.estimatedMrr ?? 0).toLocaleString()}
-                    <span className="text-sm text-zinc-500 font-normal">/mo</span>
+                    <span className="text-sm text-muted-foreground font-normal">/mo</span>
                   </div>
-                  <p className="text-xs text-zinc-500 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     {stats.paidUsers ?? 0} paid subscriber{(stats.paidUsers ?? 0) === 1 ? "" : "s"} · Enterprise excluded (custom pricing)
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
+              <Card className="border-border bg-card/90 backdrop-blur-xl">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-zinc-400">Plan Distribution</CardTitle>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Plan Distribution</CardTitle>
                     <CreditCard className="w-5 h-5 text-purple-400" />
                   </div>
                 </CardHeader>
@@ -478,10 +478,10 @@ export default function AdminDashboard() {
                     return (
                       <div key={row.plan} className="space-y-1">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-semibold text-white uppercase">{row.plan}</span>
-                          <span className="text-zinc-500">{row.count} ({pct}%)</span>
+                          <span className="font-semibold text-foreground uppercase">{row.plan}</span>
+                          <span className="text-muted-foreground">{row.count} ({pct}%)</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                        <div className="h-1.5 rounded-full bg-accent/50 overflow-hidden">
                           <div
                             className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
                             style={{ width: `${pct}%` }}
@@ -494,21 +494,21 @@ export default function AdminDashboard() {
               </Card>
             </div>
 
-            <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
+            <Card className="border-border bg-card/90 backdrop-blur-xl">
               <CardHeader>
-                <CardTitle className="text-white">Recent Activity</CardTitle>
-                <CardDescription className="text-zinc-400">Latest analytics events</CardDescription>
+                <CardTitle className="text-foreground">Recent Activity</CardTitle>
+                <CardDescription className="text-muted-foreground">Latest analytics events</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {analyticsEvents.slice(0, 5).map((event) => (
-                    <div key={event.id} className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-lg">
+                    <div key={event.id} className="flex items-center gap-3 p-3 bg-accent/50 border border-border rounded-lg">
                       <div className="p-2 bg-purple-500/20 rounded-lg">
                         <Activity className="w-4 h-4 text-purple-400" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-white">{event.eventType.replace(/_/g, " ").toUpperCase()}</p>
-                        <p className="text-xs text-zinc-500">{new Date(event.createdAt).toLocaleString()}</p>
+                        <p className="text-sm font-medium text-foreground">{event.eventType.replace(/_/g, " ").toUpperCase()}</p>
+                        <p className="text-xs text-muted-foreground">{new Date(event.createdAt).toLocaleString()}</p>
                       </div>
                       <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
                         {event.userId ? "User" : "Anonymous"}
@@ -522,21 +522,21 @@ export default function AdminDashboard() {
         )}
 
         {selectedTab === "users" && (
-          <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
+          <Card className="border-border bg-card/90 backdrop-blur-xl">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-white">User Management</CardTitle>
-                  <CardDescription className="text-zinc-400">All registered users</CardDescription>
+                  <CardTitle className="text-foreground">User Management</CardTitle>
+                  <CardDescription className="text-muted-foreground">All registered users</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                   <Input
                     placeholder="Search users..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-64 bg-zinc-800/50 border-white/10 text-white"
+                    className="w-64 bg-background border-border text-foreground"
                   />
-                  <Button size="icon" variant="outline" className="border-white/10 hover:bg-white/5">
+                  <Button size="icon" variant="outline" className="border-border hover:bg-accent/50">
                     <Search className="w-4 h-4" />
                   </Button>
                   <Button
@@ -559,16 +559,16 @@ export default function AdminDashboard() {
                   .map((target) => {
                     const isSelf = target.id === session?.user?.id;
                     return (
-                      <div key={target.id} className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-lg hover:border-white/20 transition-colors">
+                      <div key={target.id} className="flex items-center gap-4 p-4 bg-accent/50 border border-border rounded-lg hover:border-border transition-colors">
                         <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full">
-                          <UserIcon className="w-5 h-5 text-white" />
+                          <UserIcon className="w-5 h-5 text-foreground" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-semibold text-white truncate">{target.name}</p>
+                            <p className="font-semibold text-foreground truncate">{target.name}</p>
                             {isSelf && <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 text-[10px]">You</Badge>}
                           </div>
-                          <p className="text-sm text-zinc-400 truncate">{target.email}</p>
+                          <p className="text-sm text-muted-foreground truncate">{target.email}</p>
                         </div>
                         <div className="hidden md:flex items-center gap-2">
                           {target.role === "admin" && (
@@ -582,7 +582,7 @@ export default function AdminDashboard() {
                           <Badge className={target.emailVerified ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"}>
                             {target.emailVerified ? "Verified" : "Unverified"}
                           </Badge>
-                          <span className="text-xs text-zinc-500">
+                          <span className="text-xs text-muted-foreground">
                             {new Date(target.createdAt).toLocaleDateString()}
                           </span>
                         </div>
@@ -590,7 +590,7 @@ export default function AdminDashboard() {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="hover:bg-white/10 text-zinc-300"
+                            className="hover:bg-accent text-foreground/80"
                             onClick={() => openEditDialog(target)}
                             title="Edit user"
                           >
@@ -616,28 +616,28 @@ export default function AdminDashboard() {
         )}
 
         {selectedTab === "feedback" && (
-          <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
+          <Card className="border-border bg-card/90 backdrop-blur-xl">
             <CardHeader>
-              <CardTitle className="text-white">Feedback Management</CardTitle>
-              <CardDescription className="text-zinc-400">User reviews, features, and partnerships</CardDescription>
+              <CardTitle className="text-foreground">Feedback Management</CardTitle>
+              <CardDescription className="text-muted-foreground">User reviews, features, and partnerships</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {feedback.map((item) => (
-                  <div key={item.id} className="p-5 bg-white/5 border border-white/10 rounded-lg hover:border-white/20 transition-colors">
+                  <div key={item.id} className="p-5 bg-accent/50 border border-border rounded-lg hover:border-border transition-colors">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{getTypeIcon(item.type)}</span>
                         <div>
-                          <p className="font-semibold text-white">{item.name}</p>
-                          <p className="text-sm text-zinc-400">{item.email}</p>
+                          <p className="font-semibold text-foreground">{item.name}</p>
+                          <p className="text-sm text-muted-foreground">{item.email}</p>
                         </div>
                       </div>
                       <Badge className={getStatusColor(item.status)}>
                         {item.status.toUpperCase()}
                       </Badge>
                     </div>
-                    <p className="text-sm text-zinc-300 mb-4">{item.message}</p>
+                    <p className="text-sm text-foreground/80 mb-4">{item.message}</p>
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
@@ -653,7 +653,7 @@ export default function AdminDashboard() {
                       >
                         Mark Resolved
                       </Button>
-                      <span className="text-xs text-zinc-500 ml-auto">
+                      <span className="text-xs text-muted-foreground ml-auto">
                         {new Date(item.createdAt).toLocaleString()}
                       </span>
                     </div>
@@ -665,21 +665,21 @@ export default function AdminDashboard() {
         )}
 
         {selectedTab === "analytics" && (
-          <Card className="border-white/10 bg-zinc-900/80 backdrop-blur-xl">
+          <Card className="border-border bg-card/90 backdrop-blur-xl">
             <CardHeader>
-              <CardTitle className="text-white">Analytics Events</CardTitle>
-              <CardDescription className="text-zinc-400">Recent user interactions</CardDescription>
+              <CardTitle className="text-foreground">Analytics Events</CardTitle>
+              <CardDescription className="text-muted-foreground">Recent user interactions</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {analyticsEvents.map((event) => (
-                  <div key={event.id} className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-lg">
+                  <div key={event.id} className="flex items-center gap-4 p-4 bg-accent/50 border border-border rounded-lg">
                     <div className="p-2 bg-blue-500/20 rounded-lg">
                       <Activity className="w-4 h-4 text-blue-400" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-white">{event.eventType.replace(/_/g, " ").toUpperCase()}</p>
-                      <p className="text-xs text-zinc-500 mt-1">
+                      <p className="font-medium text-foreground">{event.eventType.replace(/_/g, " ").toUpperCase()}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
                         {event.eventData && typeof event.eventData === "object" && Object.keys(event.eventData).length > 0
                           ? JSON.stringify(event.eventData).substring(0, 100)
                           : "No additional data"}
@@ -689,7 +689,7 @@ export default function AdminDashboard() {
                       <Badge className={event.userId ? "bg-purple-500/20 text-purple-300" : "bg-gray-500/20 text-gray-300"}>
                         {event.userId ? "User" : "Anonymous"}
                       </Badge>
-                      <p className="text-xs text-zinc-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         {new Date(event.createdAt).toLocaleString()}
                       </p>
                     </div>
@@ -703,48 +703,48 @@ export default function AdminDashboard() {
 
       {/* Edit User Dialog */}
       <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white">
+        <DialogContent className="bg-popover border-border text-popover-foreground">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription className="text-zinc-400">{editingUser?.email}</DialogDescription>
+            <DialogDescription className="text-muted-foreground">{editingUser?.email}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label className="text-zinc-400 text-xs">Name</Label>
+              <Label className="text-muted-foreground text-xs">Name</Label>
               <Input
                 value={editForm.name}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                className="bg-zinc-800/50 border-white/10 text-white"
+                className="bg-background border-border text-foreground"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-zinc-400 text-xs">Role</Label>
+                <Label className="text-muted-foreground text-xs">Role</Label>
                 <Select
                   value={editForm.role}
                   onValueChange={(v) => setEditForm({ ...editForm, role: v })}
                   disabled={editingUser?.id === session?.user?.id}
                 >
-                  <SelectTrigger className="bg-zinc-800/50 border-white/10 text-white">
+                  <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectContent className="bg-popover border-border text-popover-foreground">
                     {ROLES.map((r) => (
                       <SelectItem key={r} value={r}>{r}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 {editingUser?.id === session?.user?.id && (
-                  <p className="text-[10px] text-zinc-500">You can&apos;t change your own role.</p>
+                  <p className="text-[10px] text-muted-foreground">You can&apos;t change your own role.</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-400 text-xs">Plan</Label>
+                <Label className="text-muted-foreground text-xs">Plan</Label>
                 <Select value={editForm.plan} onValueChange={(v) => setEditForm({ ...editForm, plan: v })}>
-                  <SelectTrigger className="bg-zinc-800/50 border-white/10 text-white">
+                  <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectContent className="bg-popover border-border text-popover-foreground">
                     {PLANS.map((p) => (
                       <SelectItem key={p} value={p}>{p}</SelectItem>
                     ))}
@@ -752,12 +752,12 @@ export default function AdminDashboard() {
                 </Select>
               </div>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-accent/50 border border-border">
               <Label className="text-sm">Email Verified</Label>
               <Button
                 size="sm"
                 variant={editForm.emailVerified ? "default" : "outline"}
-                className={editForm.emailVerified ? "bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30" : "border-white/10"}
+                className={editForm.emailVerified ? "bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30" : "border-border"}
                 onClick={() => setEditForm({ ...editForm, emailVerified: !editForm.emailVerified })}
               >
                 {editForm.emailVerified ? "Verified" : "Unverified"}
@@ -765,7 +765,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" className="border-white/10" onClick={() => setEditingUser(null)}>
+            <Button variant="outline" className="border-border" onClick={() => setEditingUser(null)}>
               Cancel
             </Button>
             <Button
@@ -782,15 +782,15 @@ export default function AdminDashboard() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
-        <AlertDialogContent className="bg-zinc-900 border-white/10 text-white">
+        <AlertDialogContent className="bg-popover border-border text-popover-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {deletingUser?.email}?</AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-400">
+            <AlertDialogDescription className="text-muted-foreground">
               This permanently deletes the account and all of its sessions. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-white/10 text-white hover:bg-white/10">
+            <AlertDialogCancel className="bg-transparent border-border text-foreground hover:bg-accent">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -810,42 +810,42 @@ export default function AdminDashboard() {
 
       {/* Create User Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white">
+        <DialogContent className="bg-popover border-border text-popover-foreground">
           <DialogHeader>
             <DialogTitle>New User</DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogDescription className="text-muted-foreground">
               Creates an account (or updates one that already exists with this email) and returns a
               one-time temporary password.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label className="text-zinc-400 text-xs">Name</Label>
+              <Label className="text-muted-foreground text-xs">Name</Label>
               <Input
                 value={createForm.name}
                 onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-                className="bg-zinc-800/50 border-white/10 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="Jane Doe"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-zinc-400 text-xs">Email</Label>
+              <Label className="text-muted-foreground text-xs">Email</Label>
               <Input
                 type="email"
                 value={createForm.email}
                 onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-                className="bg-zinc-800/50 border-white/10 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="jane@example.com"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-zinc-400 text-xs">Role</Label>
+                <Label className="text-muted-foreground text-xs">Role</Label>
                 <Select value={createForm.role} onValueChange={(v) => setCreateForm({ ...createForm, role: v })}>
-                  <SelectTrigger className="bg-zinc-800/50 border-white/10 text-white">
+                  <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectContent className="bg-popover border-border text-popover-foreground">
                     {ROLES.map((r) => (
                       <SelectItem key={r} value={r}>{r}</SelectItem>
                     ))}
@@ -853,12 +853,12 @@ export default function AdminDashboard() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-400 text-xs">Plan</Label>
+                <Label className="text-muted-foreground text-xs">Plan</Label>
                 <Select value={createForm.plan} onValueChange={(v) => setCreateForm({ ...createForm, plan: v })}>
-                  <SelectTrigger className="bg-zinc-800/50 border-white/10 text-white">
+                  <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectContent className="bg-popover border-border text-popover-foreground">
                     {PLANS.map((p) => (
                       <SelectItem key={p} value={p}>{p}</SelectItem>
                     ))}
@@ -868,7 +868,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" className="border-white/10" onClick={() => setShowCreateDialog(false)}>
+            <Button variant="outline" className="border-border" onClick={() => setShowCreateDialog(false)}>
               Cancel
             </Button>
             <Button

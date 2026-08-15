@@ -6,6 +6,7 @@ const state = vi.hoisted(() => ({
   updateSetCalls: [] as any[],
   updateReturnRows: [] as any[][],
   deleteCalls: [] as any[],
+  deleteReturnRows: [] as any[][],
   adminCheckResult: null as any,
 }));
 
@@ -29,8 +30,11 @@ vi.mock('@/db', () => ({
       },
     }),
     delete: () => ({
-      where: async (cond: any) => {
+      where: (cond: any) => {
         state.deleteCalls.push(cond);
+        return {
+          returning: async () => state.deleteReturnRows.shift() ?? [{ id: 'deleted-user' }],
+        };
       },
     }),
   },
@@ -64,6 +68,7 @@ beforeEach(() => {
   state.updateSetCalls = [];
   state.updateReturnRows = [];
   state.deleteCalls = [];
+  state.deleteReturnRows = [];
   state.adminCheckResult = { isAdmin: true, user: { id: 'admin-1' } };
   logAdminAction.mockClear();
 });
@@ -120,6 +125,16 @@ describe('PATCH /api/admin/users/[id]', () => {
     expect(logAdminAction).toHaveBeenCalledWith(
       expect.objectContaining({ adminId: 'admin-1', action: 'admin_user_updated', targetUserId: 'u2' })
     );
+  });
+
+  it('rejects an invalid boolean instead of coercing it', async () => {
+    state.selectQueue = [[{ id: 'u2', role: 'user' }]];
+    const res = await PATCH(fakeRequest({ emailVerified: 'false' }), params('u2'));
+    const body = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(body.code).toBe('INVALID_EMAIL_VERIFIED');
+    expect(state.updateSetCalls).toHaveLength(0);
   });
 
   it('rejects an empty update body', async () => {

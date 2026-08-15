@@ -450,7 +450,7 @@ export default function DownloadCenter() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-[#020617] text-white selection:bg-filex-blue/30 font-sans antialiased overflow-x-hidden">
+      <div className="min-h-screen bg-background text-foreground selection:bg-filex-blue/30 font-sans antialiased overflow-x-hidden">
         {/* Background Effects */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-filex-cyan/10 blur-[150px] rounded-full" />
@@ -459,18 +459,18 @@ export default function DownloadCenter() {
 
         <div className="relative max-w-7xl mx-auto px-6 py-12 space-y-12">
           {/* Header */}
-          <header className="flex justify-between items-center border-b border-white/5 pb-8">
+          <header className="flex justify-between items-center border-b border-border/70 pb-8">
             <FileXLogo variant="standard" size="md" />
             <div className="flex items-center gap-6">
-              <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-                  <Link href="#processing-hub" className="hover:text-white transition-colors">Tools</Link>
-                  <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
+              <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+                  <Link href="#processing-hub" className="hover:text-foreground transition-colors">Tools</Link>
+                  <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
                   <Button variant="ghost" size="sm" onClick={startTour} className="text-filex-blue hover:text-filex-blue-deep hover:bg-filex-blue/10 gap-2">
                     <HelpCircle className="w-4 h-4" />
                     Guided Tour
                   </Button>
               </nav>
-              <div className="h-6 w-px bg-white/10" />
+              <div className="h-6 w-px bg-accent" />
               <ThemeSwitcher />
               {session ? (
                 <div className="flex items-center gap-4">
@@ -480,13 +480,13 @@ export default function DownloadCenter() {
                       {userPlan}
                     </Badge>
                   </Link>
-                  <Button aria-label="Sign out" variant="ghost" size="icon" className="rounded-full hover:bg-white/5" onClick={() => authClient.signOut()}>
-                    <LogOut className="w-5 h-5 text-slate-400" />
+                  <Button aria-label="Sign out" variant="ghost" size="icon" className="rounded-full hover:bg-accent/50" onClick={() => authClient.signOut()}>
+                    <LogOut className="w-5 h-5 text-muted-foreground" />
                   </Button>
                 </div>
               ) : (
                 <Link href="/login">
-                  <Button className="bg-white text-black hover:bg-slate-200 font-bold rounded-xl px-6">
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl px-6">
                     Sign In
                   </Button>
                 </Link>
@@ -521,7 +521,7 @@ export default function DownloadCenter() {
                 <h2 className="text-5xl md:text-7xl font-black tracking-tighter max-w-4xl mx-auto leading-[0.9]">
                   STRIP DATA FINGERPRINTS. <span className="text-transparent bg-clip-text bg-filex-gradient">SECURE YOUR PRIVACY.</span>
                 </h2>
-                <p className="text-slate-400 text-lg max-w-2xl mx-auto font-medium">
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-medium">
                   FileX uses AI to detect and remove sensitive metadata from your files. 
                   Zero server-side storage. 100% private.
                 </p>
@@ -529,25 +529,25 @@ export default function DownloadCenter() {
 
               <div className="flex flex-wrap justify-center gap-4">
                 <Button 
-                  className="h-14 px-8 rounded-2xl bg-white text-black hover:bg-slate-200 font-bold text-lg shadow-xl shadow-white/5"
+                  className="h-14 px-8 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-lg shadow-xl shadow-black/5"
                   onClick={() => document.getElementById('file-upload-input')?.click()}
                 >
                   <Upload className="w-5 h-5 mr-2" />
                   Upload Files
                 </Button>
-                <Button variant="outline" onClick={startTour} className="h-14 px-8 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 font-bold text-lg">
+                <Button variant="outline" onClick={startTour} className="h-14 px-8 rounded-2xl border-border bg-accent/50 hover:bg-accent font-bold text-lg">
                   <PlayCircle className="w-5 h-5 mr-2 text-filex-blue" />
                   Watch Workflow
                 </Button>
               </div>
 
               {/* Trust Section */}
-              <div className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto border-t border-white/5">
+              <div className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto border-t border-border/70">
                 <div className="flex flex-col items-center gap-1">
-                  <span className="text-2xl font-black text-white tabular-nums">
+                  <span className="text-2xl font-black text-foreground tabular-nums">
                     {processedCount.toLocaleString()}
                   </span>
-                  <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Global Secures Today</span>
+                  <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Global Secures Today</span>
                 </div>
                 {[
                   { label: "Local Processing", icon: HardDrive, color: "text-filex-cyan" },
@@ -556,7 +556,7 @@ export default function DownloadCenter() {
                 ].map((badge) => (
                   <div key={badge.label} className="flex flex-col items-center gap-1">
                     <badge.icon className={`w-6 h-6 ${badge.color}`} />
-                    <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{badge.label}</span>
+                    <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{badge.label}</span>
                   </div>
                 ))}
               </div>
@@ -572,21 +572,21 @@ export default function DownloadCenter() {
                   <Settings2 className="w-6 h-6 text-filex-blue" />
                   Security Configuration
                 </h2>
-                <Card className="bg-[#0f172a]/50 border-white/5 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl">
+                <Card className="bg-card/80 border-border/70 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl">
                   <CardContent className="p-8 space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-3">
-                        <Label className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Metadata Template</Label>
+                        <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Metadata Template</Label>
                         <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                          <SelectTrigger className="bg-[#020617] border-white/10 h-12 rounded-xl focus:ring-filex-blue/50">
+                          <SelectTrigger className="bg-background border-border h-12 rounded-xl focus:ring-filex-blue/50">
                             <SelectValue placeholder="Select Template" />
                           </SelectTrigger>
-                          <SelectContent className="bg-[#0f172a] border-white/10 text-white rounded-xl">
+                          <SelectContent className="bg-card border-border text-popover-foreground rounded-xl">
                             {Object.entries(TEMPLATES).map(([id, t]) => (
                               <SelectItem key={id} value={id} className="p-3 focus:bg-filex-blue/10">
                                 <div className="flex flex-col">
                                   <span className="font-bold text-sm">{t.name}</span>
-                                  <span className="text-[10px] text-slate-500">{t.description}</span>
+                                  <span className="text-[10px] text-muted-foreground">{t.description}</span>
                                 </div>
                               </SelectItem>
                             ))}
@@ -596,11 +596,11 @@ export default function DownloadCenter() {
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <Label className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Privacy Aggression</Label>
+                          <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Privacy Aggression</Label>
                           <Badge variant="outline" className="text-[10px] border-filex-blue/30 text-filex-blue">{privacyLevel}%</Badge>
                         </div>
                         <Slider value={[privacyLevel]} onValueChange={(v) => setPrivacyLevel(v[0])} max={100} className="py-4" />
-                        <p className="text-[10px] text-slate-500 font-medium italic">Higher levels strip more deeply embedded markers.</p>
+                        <p className="text-[10px] text-muted-foreground font-medium italic">Higher levels strip more deeply embedded markers.</p>
                       </div>
                     </div>
                   </CardContent>
@@ -622,14 +622,14 @@ export default function DownloadCenter() {
                   )}
                 </h2>
                 <div {...getRootProps()} className={`relative group cursor-pointer ${uploadedFiles.length > 0 ? 'h-40' : 'h-80'} flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-[2.5rem] transition-all duration-500 ${
-                  isDragActive ? "border-filex-blue bg-filex-blue/5 scale-[0.99]" : "border-white/10 bg-[#0f172a]/80 hover:bg-[#0f172a]"
+                  isDragActive ? "border-filex-blue bg-filex-blue/5 scale-[0.99]" : "border-border bg-card hover:bg-card"
                 }`}>
                   <input {...getInputProps()} id="file-upload-input" />
                   {isProcessing ? (
                     <div className="flex flex-col items-center gap-4 text-center">
                       <div className="w-16 h-16 rounded-full border-4 border-filex-blue/20 border-t-filex-blue animate-spin" />
                       <div className="space-y-1">
-                        <p className="font-black text-xl tracking-tight text-white uppercase">AI Analysis in Progress</p>
+                        <p className="font-black text-xl tracking-tight text-foreground uppercase">AI Analysis in Progress</p>
                         <p className="text-xs text-filex-blue uppercase tracking-widest animate-pulse">Scanning binary structures...</p>
                       </div>
                     </div>
@@ -638,19 +638,19 @@ export default function DownloadCenter() {
                       <div className="flex items-center gap-3">
                         <div className="flex -space-x-3">
                           {uploadedFiles.slice(0, 3).map((f, i) => (
-                            <div key={i} className="w-10 h-10 rounded-xl bg-white/10 border-2 border-[#0f172a] flex items-center justify-center">
+                            <div key={i} className="w-10 h-10 rounded-xl bg-accent border-2 border-card flex items-center justify-center">
                               <FileIcon className="w-5 h-5 text-filex-blue" />
                             </div>
                           ))}
                           {uploadedFiles.length > 3 && (
-                            <div className="w-10 h-10 rounded-xl bg-white/10 border-2 border-[#0f172a] flex items-center justify-center text-[10px] font-bold">
+                            <div className="w-10 h-10 rounded-xl bg-accent border-2 border-card flex items-center justify-center text-[10px] font-bold">
                               +{uploadedFiles.length - 3}
                             </div>
                           )}
                         </div>
                         <p className="text-lg font-bold">{uploadedFiles.length} File(s) Staged</p>
                       </div>
-                      <p className="text-xs text-slate-500 uppercase tracking-widest font-black">Drop more to add · maximum 10 files</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-widest font-black">Drop more to add · maximum 10 files</p>
                     </div>
                   ) : (
                     <>
@@ -658,8 +658,8 @@ export default function DownloadCenter() {
                         <Upload className="w-8 h-8 text-white" />
                       </div>
                       <h3 className="text-xl font-black tracking-tight">Drop files or click to upload</h3>
-                      <p className="text-slate-500 max-w-sm text-center font-medium mt-2">Maximum privacy. All processing happens in your browser.</p>
-                      <Badge variant="outline" className="mt-6 border-white/5 bg-white/5 text-slate-400 px-4 py-1">
+                      <p className="text-muted-foreground max-w-sm text-center font-medium mt-2">Maximum privacy. All processing happens in your browser.</p>
+                      <Badge variant="outline" className="mt-6 border-border/70 bg-accent/50 text-muted-foreground px-4 py-1">
                         JPG, PNG, PDF, MP4, MOV
                       </Badge>
                     </>
@@ -672,25 +672,25 @@ export default function DownloadCenter() {
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <h2 id="batch-queue-title" className="text-2xl font-bold flex items-center gap-3"><LayoutDashboard className="w-6 h-6 text-filex-cyan" />Batch queue</h2>
-                      <p className="mt-1 text-xs text-slate-500">Each staged file is retained independently for export.</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Each staged file is retained independently for export.</p>
                     </div>
-                    <Badge variant="outline" className="border-white/10 text-slate-300">{uploadedFiles.length}/10</Badge>
+                    <Badge variant="outline" className="border-border text-foreground/80">{uploadedFiles.length}/10</Badge>
                   </div>
                   <div className="space-y-2">
                     {uploadedFiles.map((file) => {
                       const isImage = file.type.startsWith("image/");
                       return (
-                        <div key={`${file.name}:${file.size}:${file.lastModified}`} className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div key={`${file.name}:${file.size}:${file.lastModified}`} className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex min-w-0 items-center gap-3">
-                            <div className="rounded-xl bg-white/5 p-2 text-filex-cyan">{isImage ? <ImageIcon className="h-4 w-4" /> : <FileIcon className="h-4 w-4" />}</div>
-                            <div className="min-w-0"><p className="truncate text-sm font-semibold text-white">{file.name}</p><p className="text-[10px] uppercase tracking-widest text-slate-500">{(file.size / 1024).toFixed(1)} KB · {file.type || "file"}</p></div>
+                            <div className="rounded-xl bg-accent/50 p-2 text-filex-cyan">{isImage ? <ImageIcon className="h-4 w-4" /> : <FileIcon className="h-4 w-4" />}</div>
+                            <div className="min-w-0"><p className="truncate text-sm font-semibold text-foreground">{file.name}</p><p className="text-[10px] uppercase tracking-widest text-muted-foreground">{(file.size / 1024).toFixed(1)} KB · {file.type || "file"}</p></div>
                           </div>
                           {isImage && <Button type="button" size="sm" variant="outline" onClick={() => setWatermarkEditorFile(file)} className="border-cyan-400/25 text-cyan-200 hover:bg-cyan-400/10"><Eraser className="mr-2 h-4 w-4" />Remove watermark</Button>}
                         </div>
                       );
                     })}
                   </div>
-                  {imageFiles.length > 0 && <p className="text-[10px] font-medium italic text-slate-500">Watermark cleanup is local and intended for content you own or are authorized to edit.</p>}
+                  {imageFiles.length > 0 && <p className="text-[10px] font-medium italic text-muted-foreground">Watermark cleanup is local and intended for content you own or are authorized to edit.</p>}
                 </section>
               )}
 
@@ -720,14 +720,14 @@ export default function DownloadCenter() {
                           </div>
                           <div>
                             <h4 className="font-bold text-sm">No risky metadata detected</h4>
-                            <p className="text-xs text-slate-400">These files look clean — you can still proceed to export them securely.</p>
+                            <p className="text-xs text-muted-foreground">These files look clean — you can still proceed to export them securely.</p>
                           </div>
                         </CardContent>
                       </Card>
                     ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {risks.map(risk => (
-                        <Card key={risk.id} className={`bg-[#0f172a]/40 border-white/5 backdrop-blur-md rounded-2xl group hover:border-white/10 transition-all ${!risk.isChecked ? 'opacity-70' : ''}`}>
+                        <Card key={risk.id} className={`bg-card/60 border-border/70 backdrop-blur-md rounded-2xl group hover:border-border transition-all ${!risk.isChecked ? 'opacity-70' : ''}`}>
                           <CardContent className="p-5 flex items-start justify-between gap-4">
                             <div className="flex gap-4">
                               <div className={`mt-1 p-2 rounded-xl ${
@@ -739,14 +739,14 @@ export default function DownloadCenter() {
                               </div>
                               <div className="space-y-1">
                                 <h4 className="font-bold text-sm tracking-tight">{risk.label}</h4>
-                                <p className="text-[10px] text-slate-400 font-mono leading-none">{risk.description}</p>
+                                <p className="text-[10px] text-muted-foreground font-mono leading-none">{risk.description}</p>
                                 {risk.isChecked && <p className="text-[10px] text-filex-blue font-bold mt-2 flex items-center gap-1"><ScanLine className="w-3 h-3" /> Auto-Stripped</p>}
                               </div>
                             </div>
                             <Checkbox 
                               checked={risk.isChecked} 
                               onCheckedChange={() => toggleRisk(risk.id)}
-                              className="mt-1 border-white/20 data-[state=checked]:bg-filex-blue data-[state=checked]:border-filex-blue rounded-lg h-6 w-6"
+                              className="mt-1 border-border data-[state=checked]:bg-filex-blue data-[state=checked]:border-filex-blue rounded-lg h-6 w-6"
                             />
                           </CardContent>
                         </Card>
@@ -768,11 +768,11 @@ export default function DownloadCenter() {
                     <Archive className="w-6 h-6 text-filex-blue" />
                     Export & Delivery
                   </h2>
-                  <Card className="bg-[#0f172a]/50 border-white/5 rounded-[2.5rem] overflow-hidden p-8 space-y-10 shadow-2xl">
+                  <Card className="bg-card/80 border-border/70 rounded-[2.5rem] overflow-hidden p-8 space-y-10 shadow-2xl">
                     
                     {/* Download Options */}
                     <div className="space-y-4">
-                      <Label className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Select Deliverables</Label>
+                      <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Select Deliverables</Label>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {[
                           { id: 'downloadCleaned', label: 'Secured Files', icon: Download, size: fileSizeEstimates.downloadCleaned, color: 'text-green-400' },
@@ -781,32 +781,32 @@ export default function DownloadCenter() {
                           { id: 'createReport', label: 'Audit Report (.html)', icon: FileCode, size: fileSizeEstimates.createReport, color: 'text-orange-400' },
                           { id: 'generateCertificate', label: 'Verified Certificate (.pdf)', icon: ShieldCheck, size: fileSizeEstimates.generateCertificate, color: 'text-filex-blue' },
                         ].map((opt) => (
-                          <div key={opt.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors cursor-pointer" onClick={() => setExportOptions({...exportOptions, [opt.id]: !exportOptions[opt.id as keyof typeof exportOptions]})}>
+                          <div key={opt.id} className="flex items-center justify-between p-4 rounded-2xl bg-accent/50 border border-border/70 hover:border-border transition-colors cursor-pointer" onClick={() => setExportOptions({...exportOptions, [opt.id]: !exportOptions[opt.id as keyof typeof exportOptions]})}>
                             <div className="flex items-center gap-4">
-                              <div className={`p-2 rounded-xl bg-white/5 ${opt.color}`}>
+                              <div className={`p-2 rounded-xl bg-accent/50 ${opt.color}`}>
                                 <opt.icon className="w-4 h-4" />
                               </div>
                               <div className="flex flex-col">
                                 <span className="text-sm font-bold">{opt.label}</span>
-                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">{opt.size}</span>
+                                <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter">{opt.size}</span>
                               </div>
                             </div>
                             <Checkbox 
                               checked={exportOptions[opt.id as keyof typeof exportOptions]} 
                               onCheckedChange={(v) => setExportOptions({...exportOptions, [opt.id]: !!v})} 
-                              className="rounded-lg h-5 w-5 border-white/10"
+                              className="rounded-lg h-5 w-5 border-border"
                             />
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    <div className="h-px bg-white/5" />
+                    <div className="h-px bg-accent/50" />
 
                     {/* Security & Verification */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                       <div className="space-y-4">
-                        <Label className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Naming Protocols</Label>
+                        <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Naming Protocols</Label>
                         <div className="space-y-3">
                           <div className="flex items-center gap-3">
                             <Checkbox id="ts" checked={namingOptions.addTimestamp} onCheckedChange={(v) => setNamingOptions({...namingOptions, addTimestamp: !!v})} className="rounded" />
@@ -818,14 +818,14 @@ export default function DownloadCenter() {
                           </div>
                           <Input 
                             placeholder="Custom Prefix (Optional)" 
-                            className="bg-white/5 border-white/10 rounded-xl h-10 text-xs focus:ring-filex-blue/50"
+                            className="bg-accent/50 border-border rounded-xl h-10 text-xs focus:ring-filex-blue/50"
                             value={namingOptions.customName}
                             onChange={(e) => setNamingOptions({...namingOptions, customName: e.target.value})}
                           />
                         </div>
                       </div>
                       <div className="space-y-4">
-                        <Label className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Data Verification</Label>
+                        <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Data Verification</Label>
                         <div className="space-y-4">
                           <div className="flex items-center gap-3">
                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
@@ -849,7 +849,7 @@ export default function DownloadCenter() {
 
             {/* Right Column: Metadata Shield Preview */}
             <div className="lg:col-span-5 space-y-8">
-              <Card className="metadata-shield bg-[#0f172a]/50 border-white/5 backdrop-blur-xl rounded-[2.5rem] overflow-hidden sticky top-8 shadow-2xl">
+              <Card className="metadata-shield bg-card/80 border-border/70 backdrop-blur-xl rounded-[2.5rem] overflow-hidden sticky top-8 shadow-2xl">
                 <CardHeader className="p-8 pb-4 flex flex-row items-center justify-between">
                   <div>
                     <CardTitle className="text-xl font-bold flex items-center gap-2">
@@ -869,10 +869,10 @@ export default function DownloadCenter() {
                   {uploadedFiles.length > 0 ? (
                     <div className="space-y-6">
                       {/* Split View */}
-                      <div className="grid grid-cols-2 gap-px bg-white/5 rounded-3xl overflow-hidden border border-white/5">
+                      <div className="grid grid-cols-2 gap-px bg-accent/50 rounded-3xl overflow-hidden border border-border/70">
                         <div className="p-5 bg-black/20 space-y-4">
                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-400/70">Original Data</p>
-                          <div className="space-y-3 font-mono text-[9px] leading-tight text-slate-500">
+                          <div className="space-y-3 font-mono text-[9px] leading-tight text-muted-foreground">
                             {risks.map(r => (
                               <div key={r.id} className="flex gap-2">
                                 <span className="text-red-900 shrink-0">[-]</span>
@@ -887,7 +887,7 @@ export default function DownloadCenter() {
                             {risks.map(r => (
                               <div key={r.id} className="flex gap-2">
                                 <span className="text-green-600 shrink-0">[+]</span>
-                                <span className={r.isChecked ? "text-green-400 font-bold" : "text-slate-600 italic"}>
+                                <span className={r.isChecked ? "text-green-400 font-bold" : "text-muted-foreground italic"}>
                                   {r.isChecked ? "[SCRUBBED]" : "[PRESERVED]"}
                                 </span>
                               </div>
@@ -897,10 +897,10 @@ export default function DownloadCenter() {
                       </div>
 
                       {/* Score Indicator */}
-                      <div className="p-6 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-between">
+                      <div className="p-6 rounded-3xl bg-accent/50 border border-border/70 flex items-center justify-between">
                         <div className="space-y-1">
-                          <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Privacy Protection Score</p>
-                          <p className="text-4xl font-black">{stats.score}<span className="text-xl text-slate-500">%</span></p>
+                          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Privacy Protection Score</p>
+                          <p className="text-4xl font-black">{stats.score}<span className="text-xl text-muted-foreground">%</span></p>
                         </div>
                         <div className="w-16 h-16 rounded-full bg-filex-gradient flex items-center justify-center shadow-lg shadow-filex-blue/20">
                           <ShieldCheck className="w-8 h-8 text-white" />
@@ -911,7 +911,7 @@ export default function DownloadCenter() {
                       <Button 
                         onClick={handleDownload}
                         disabled={isProcessing}
-                        className="download-btn w-full bg-white text-black hover:bg-slate-200 font-black rounded-2xl h-16 shadow-2xl shadow-filex-blue/10 group text-lg"
+                        className="download-btn w-full bg-primary text-primary-foreground hover:bg-primary/90 font-black rounded-2xl h-16 shadow-2xl shadow-filex-blue/10 group text-lg"
                       >
                         {isProcessing ? (
                           <RefreshCw className="w-6 h-6 animate-spin" />
@@ -923,14 +923,14 @@ export default function DownloadCenter() {
                         )}
                       </Button>
                       
-                      <p className="text-[9px] text-center text-slate-600 font-bold uppercase tracking-widest">
+                      <p className="text-[9px] text-center text-muted-foreground font-bold uppercase tracking-widest">
                         Total {uploadedFiles.length} file(s) staged for local processing
                       </p>
                     </div>
                   ) : (
                     <div className="h-80 flex flex-col items-center justify-center text-center space-y-4 opacity-20">
                       <div className="w-20 h-20 rounded-full border-2 border-dashed border-slate-500 flex items-center justify-center">
-                        <ScanLine className="w-8 h-8 text-slate-500" />
+                        <ScanLine className="w-8 h-8 text-muted-foreground" />
                       </div>
                       <p className="font-bold text-sm">Upload files to begin<br/>secure threat scanning</p>
                     </div>
@@ -939,12 +939,12 @@ export default function DownloadCenter() {
               </Card>
 
               {/* Security Advisory */}
-              <div className="p-6 rounded-[2rem] bg-gradient-to-tr from-filex-cyan/5 to-filex-blue/5 border border-white/5 space-y-3">
+              <div className="p-6 rounded-[2rem] bg-gradient-to-tr from-filex-cyan/5 to-filex-blue/5 border border-border/70 space-y-3">
                 <div className="flex items-center gap-3">
                   <Info className="w-5 h-5 text-filex-cyan" />
-                  <h4 className="font-bold text-xs uppercase tracking-tight text-white">Privacy Advisory</h4>
+                  <h4 className="font-bold text-xs uppercase tracking-tight text-foreground">Privacy Advisory</h4>
                 </div>
-                <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic">
+                <p className="text-[10px] text-muted-foreground font-medium leading-relaxed italic">
                   Your files are never uploaded to any server. Our shield operates entirely within the secure context of your browser's V8 engine. Once you close this tab, all session data is permanently purged.
                 </p>
               </div>
@@ -960,7 +960,7 @@ export default function DownloadCenter() {
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="w-full max-w-lg bg-[#0f172a] border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl shadow-green-500/10"
+                className="w-full max-w-lg bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl shadow-green-500/10"
               >
                 <div className="bg-gradient-to-tr from-green-500/20 via-filex-cyan/20 to-filex-blue/20 p-12 text-center space-y-6">
                   <div className="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center mx-auto shadow-2xl shadow-green-500/50">
@@ -968,27 +968,27 @@ export default function DownloadCenter() {
                   </div>
                   <div className="space-y-2">
                     <h2 className="text-4xl font-black tracking-tight uppercase">SECURED!</h2>
-                    <p className="text-slate-400 font-medium">Digital footprints successfully erased.</p>
+                    <p className="text-muted-foreground font-medium">Digital footprints successfully erased.</p>
                   </div>
                 </div>
                 <div className="p-12 space-y-8">
                   <div className="grid grid-cols-2 gap-6">
-                    <div className="p-6 rounded-3xl bg-white/5 border border-white/5 text-center space-y-1">
+                    <div className="p-6 rounded-3xl bg-accent/50 border border-border/70 text-center space-y-1">
                       <p className="text-3xl font-black text-green-400">{stats.resolved}</p>
-                      <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Threats Neutralized</p>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Threats Neutralized</p>
                     </div>
-                    <div className="p-6 rounded-3xl bg-white/5 border border-white/5 text-center space-y-1">
+                    <div className="p-6 rounded-3xl bg-accent/50 border border-border/70 text-center space-y-1">
                       <p className="text-3xl font-black text-filex-cyan">{uploadedFiles.length}</p>
-                      <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Files Verified</p>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Files Verified</p>
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-4">
-                    <Button onClick={() => setShowSuccessModal(false)} className="h-16 rounded-2xl bg-white text-black hover:bg-slate-200 font-black text-lg">
+                    <Button onClick={() => setShowSuccessModal(false)} className="h-16 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 font-black text-lg">
                       Start New Session
                     </Button>
                     <div className="flex gap-4">
-                      <Button variant="outline" className="flex-1 h-12 rounded-2xl border-white/10 hover:bg-white/5 font-bold" onClick={() => router.push(appPath("/pricing"))}>
+                      <Button variant="outline" className="flex-1 h-12 rounded-2xl border-border hover:bg-accent/50 font-bold" onClick={() => router.push(appPath("/pricing"))}>
                         View Pro Features
                       </Button>
                       <Button variant="ghost" className="flex-1 h-12 rounded-2xl font-bold" onClick={() => toast.info("Feedback form coming soon!")}>
@@ -1026,7 +1026,7 @@ export default function DownloadCenter() {
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-[#0f172a] border border-filex-blue/50 rounded-[2.5rem] p-10 shadow-2xl shadow-filex-blue/30 pointer-events-auto"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card border border-filex-blue/50 rounded-[2.5rem] p-10 shadow-2xl shadow-filex-blue/30 pointer-events-auto"
               >
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
@@ -1034,27 +1034,27 @@ export default function DownloadCenter() {
                       <div className="w-8 h-8 rounded-lg bg-filex-blue flex items-center justify-center text-xs font-black">
                         {tourStep + 1}
                       </div>
-                      <span className="text-xs font-black text-slate-500 uppercase tracking-widest">FileX Onboarding</span>
+                      <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">FileX Onboarding</span>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={closeTour} className="rounded-full hover:bg-white/5 h-8 w-8">
+                    <Button variant="ghost" size="icon" onClick={closeTour} className="rounded-full hover:bg-accent/50 h-8 w-8">
                       <X className="w-4 h-4 text-white" />
                     </Button>
                   </div>
                   <div className="space-y-3">
-                    <h3 className="text-3xl font-black tracking-tight text-white uppercase">{tourSteps[tourStep].title}</h3>
-                    <p className="text-sm text-slate-400 font-medium leading-relaxed">{tourSteps[tourStep].content}</p>
+                    <h3 className="text-3xl font-black tracking-tight text-foreground uppercase">{tourSteps[tourStep].title}</h3>
+                    <p className="text-sm text-muted-foreground font-medium leading-relaxed">{tourSteps[tourStep].content}</p>
                   </div>
                   <div className="pt-6 flex items-center justify-between">
                     <div className="flex gap-1.5">
                       {tourSteps.map((_, i) => (
-                        <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === tourStep ? 'w-6 bg-filex-blue' : 'bg-white/10'}`} />
+                        <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === tourStep ? 'w-6 bg-filex-blue' : 'bg-accent'}`} />
                       ))}
                     </div>
                     <div className="flex items-center gap-3">
-                      <Button variant="ghost" className="text-xs text-slate-500 hover:text-white font-bold" onClick={closeTour}>
+                      <Button variant="ghost" className="text-xs text-muted-foreground hover:text-foreground font-bold" onClick={closeTour}>
                         Skip
                       </Button>
-                      <Button onClick={nextStep} className="bg-white text-black hover:bg-slate-200 font-black px-8 rounded-2xl h-12">
+                      <Button onClick={nextStep} className="bg-primary text-primary-foreground hover:bg-primary/90 font-black px-8 rounded-2xl h-12">
                         {tourStep === tourSteps.length - 1 ? "Get Started" : "Next Step"}
                       </Button>
                     </div>
@@ -1066,42 +1066,42 @@ export default function DownloadCenter() {
         </AnimatePresence>
 
         {/* Footer Navigation */}
-        <footer className="max-w-7xl mx-auto px-6 py-20 border-t border-white/5 mt-20">
+        <footer className="max-w-7xl mx-auto px-6 py-20 border-t border-border/70 mt-20">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12">
             <div className="col-span-2 space-y-6">
               <FileXLogo variant="standard" size="md" />
-              <p className="text-sm text-slate-500 font-medium max-w-xs leading-relaxed">
+              <p className="text-sm text-muted-foreground font-medium max-w-xs leading-relaxed">
                 The world's most advanced client-side metadata erasure tool. Built for professionals who value digital sovereignty.
               </p>
               <div className="flex gap-3">
-                <a aria-label="FileX GitHub repository" href="https://github.com/gaurav-chakraborty/filex" target="_blank" rel="noreferrer" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/5 text-slate-300 transition hover:bg-white/5 hover:text-white"><ExternalLink className="h-4 w-4" /></a>
-                <a aria-label="Email KNIMEX support" href="mailto:contact@knimex.com" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/5 text-slate-300 transition hover:bg-white/5 hover:text-white"><Mail className="h-4 w-4" /></a>
-                <button aria-label="Copy FileX link" type="button" onClick={() => { void navigator.clipboard?.writeText(window.location.href); toast.success("FileX link copied."); }} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/5 text-slate-300 transition hover:bg-white/5 hover:text-white"><Copy className="h-4 w-4" /></button>
+                <a aria-label="FileX GitHub repository" href="https://github.com/gaurav-chakraborty/filex" target="_blank" rel="noreferrer" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground/80 transition hover:bg-accent/50 hover:text-foreground"><ExternalLink className="h-4 w-4" /></a>
+                <a aria-label="Email KNIMEX support" href="mailto:contact@knimex.com" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground/80 transition hover:bg-accent/50 hover:text-foreground"><Mail className="h-4 w-4" /></a>
+                <button aria-label="Copy FileX link" type="button" onClick={() => { void navigator.clipboard?.writeText(window.location.href); toast.success("FileX link copied."); }} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground/80 transition hover:bg-accent/50 hover:text-foreground"><Copy className="h-4 w-4" /></button>
               </div>
             </div>
             <div className="space-y-4">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-white">Product</h4>
-              <nav className="flex flex-col gap-3 text-sm font-medium text-slate-500">
-                <Link href="#security-engine" className="hover:text-white transition-colors">Security Engine</Link>
-                <Link href="/api-docs" className="hover:text-white transition-colors">API Docs</Link>
-                <Link href="/pricing" className="hover:text-white transition-colors">Pricing Plans</Link>
-                <a href="https://github.com/gaurav-chakraborty/filex" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Open Source</a>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground">Product</h4>
+              <nav className="flex flex-col gap-3 text-sm font-medium text-muted-foreground">
+                <Link href="#security-engine" className="hover:text-foreground transition-colors">Security Engine</Link>
+                <Link href="/api-docs" className="hover:text-foreground transition-colors">API Docs</Link>
+                <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing Plans</Link>
+                <a href="https://github.com/gaurav-chakraborty/filex" target="_blank" rel="noreferrer" className="hover:text-foreground transition-colors">Open Source</a>
               </nav>
             </div>
             <div className="space-y-4">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-white">Legal</h4>
-              <nav className="flex flex-col gap-3 text-sm font-medium text-slate-500">
-                <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-                <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-                <Link href="/security" className="hover:text-white transition-colors">Security Policy</Link>
-                <Link href="/privacy#cookies" className="hover:text-white transition-colors">Cookie Audit</Link>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground">Legal</h4>
+              <nav className="flex flex-col gap-3 text-sm font-medium text-muted-foreground">
+                <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+                <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+                <Link href="/security" className="hover:text-foreground transition-colors">Security Policy</Link>
+                <Link href="/privacy#cookies" className="hover:text-foreground transition-colors">Cookie Audit</Link>
               </nav>
             </div>
               <div className="col-span-2 lg:col-span-1 space-y-6">
-                <div className="p-6 rounded-3xl bg-filex-gradient/10 border border-white/5 space-y-4">
-                  <h4 className="text-xs font-black uppercase tracking-tight text-white">Need support?</h4>
-                  <p className="text-xs leading-5 text-slate-400">Questions about privacy, batch exports, or enterprise workflows?</p>
-                  <Link href="/contact" className="inline-flex items-center gap-2 text-xs font-bold text-cyan-200 hover:text-white">Open support center <ExternalLink className="h-3 w-3" /></Link>
+                <div className="p-6 rounded-3xl bg-filex-gradient/10 border border-border/70 space-y-4">
+                  <h4 className="text-xs font-black uppercase tracking-tight text-foreground">Need support?</h4>
+                  <p className="text-xs leading-5 text-muted-foreground">Questions about privacy, batch exports, or enterprise workflows?</p>
+                  <Link href="/contact" className="inline-flex items-center gap-2 text-xs font-bold text-cyan-200 hover:text-foreground">Open support center <ExternalLink className="h-3 w-3" /></Link>
                 </div>
               </div>
           </div>

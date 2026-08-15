@@ -10,13 +10,13 @@ export async function GET(request: NextRequest) {
     // Check admin access
     const adminCheck = await checkAdminAccess();
 
-    if (!adminCheck.isAdmin) {
+    if (!adminCheck.isAdmin || !adminCheck.user) {
       return NextResponse.json({
         error: adminCheck.error || "Unauthorized"
-      }, { status: adminCheck.user ? 403 : 401 });
+      }, { status: adminCheck.user ? 403 : 401, headers: { "Cache-Control": "no-store" } });
     }
 
-    const authSession = { user: adminCheck.user };
+    const authUser = adminCheck.user;
 
     // 2. Gather Debug & Monitor Data
     
@@ -52,18 +52,20 @@ export async function GET(request: NextRequest) {
     // Environment Check (Safely)
     const envCheck = {
       isProduction: process.env.NODE_ENV === 'production',
-      hasTursoUrl: !!process.env.TURSO_CONNECTION_URL,
-      hasTursoToken: !!process.env.TURSO_AUTH_TOKEN,
-      hasBetterAuthSecret: !!process.env.BETTER_AUTH_SECRET,
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasSupabaseServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      hasBetterAuthSecret: !!(process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET),
       siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+      basePath: process.env.NEXT_PUBLIC_APP_BASE_PATH || "",
     };
 
     return NextResponse.json({
       status: "healthy",
       timestamp: new Date().toISOString(),
       creator: {
-        id: authSession.user.id,
-        email: authSession.user.email,
+        id: authUser.id,
+        email: authUser.email,
         isAdmin: true
       },
       metrics: {

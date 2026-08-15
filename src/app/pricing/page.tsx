@@ -11,6 +11,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
 import MobileNav from "@/components/MobileNav";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { appPath } from "@/lib/app-path";
 
 const PLANS = [
@@ -114,7 +115,7 @@ function PricingPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white selection:bg-purple-500/30 font-sans antialiased overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground selection:bg-purple-500/30 font-sans antialiased overflow-x-hidden">
       {/* Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-600/10 blur-[150px] rounded-full" />
@@ -123,7 +124,7 @@ function PricingPageContent() {
 
       <div className="relative max-w-7xl mx-auto px-6 py-20 space-y-20">
         {/* Header */}
-        <header className="flex justify-between items-center border-b border-white/5 pb-8">
+        <header className="flex justify-between items-center border-b border-border/70 pb-8">
           <Link href="/" className="flex items-center gap-4 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-600/20 group-hover:scale-110 transition-transform">
               <Shield className="w-6 h-6 text-white" />
@@ -133,13 +134,14 @@ function PricingPageContent() {
             </div>
           </Link>
           <div className="flex items-center gap-6">
-            <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-              <Link href="/" className="hover:text-white transition-colors">Back to App</Link>
-              <Link href="/api-docs" className="hover:text-white transition-colors">Documentation</Link>
+            <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+              <Link href="/" className="hover:text-foreground transition-colors">Back to App</Link>
+              <Link href="/api-docs" className="hover:text-foreground transition-colors">Documentation</Link>
             </nav>
-            <div className="h-6 w-px bg-white/10 hidden md:block" />
+            <div className="h-6 w-px bg-accent hidden md:block" />
+            <ThemeSwitcher />
             <Link href={session?.user ? "/account" : "/login"} className="hidden sm:block">
-              <Button className="bg-white text-black hover:bg-slate-200 font-bold rounded-xl px-6">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl px-6">
                 {session?.user ? "My Account" : "Sign In"}
               </Button>
             </Link>
@@ -161,7 +163,7 @@ function PricingPageContent() {
           <h2 className="text-5xl md:text-7xl font-black tracking-tighter max-w-4xl mx-auto leading-[0.9] uppercase">
             Secure Your Privacy <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500">at any scale.</span>
           </h2>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto font-medium">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-medium">
             Choose the plan that fits your security needs. No hidden fees, cancel anytime. 
             Join 10,000+ users securing their digital footprint.
           </p>
@@ -177,7 +179,7 @@ function PricingPageContent() {
               whileHover={{ y: -5 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className={`relative h-full bg-[#0f172a]/50 border-white/5 backdrop-blur-xl rounded-[2.5rem] overflow-hidden shadow-2xl transition-all hover:border-white/10 ${plan.highlight ? 'ring-2 ring-purple-500 shadow-purple-500/10' : ''}`}>
+              <Card className={`relative h-full bg-card/80 border-border/70 backdrop-blur-xl rounded-[2.5rem] overflow-hidden shadow-2xl transition-all hover:border-border ${plan.highlight ? 'ring-2 ring-purple-500 shadow-purple-500/10' : ''}`}>
                 {plan.highlight && (
                   <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-purple-500 to-blue-500" />
                 )}
@@ -190,19 +192,19 @@ function PricingPageContent() {
                   </div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-5xl font-black">{plan.price}</span>
-                    {plan.period && <span className="text-slate-500 font-bold text-lg">{plan.period}</span>}
+                    {plan.period && <span className="text-muted-foreground font-bold text-lg">{plan.period}</span>}
                   </div>
-                  <CardDescription className="text-slate-400 font-medium mt-4 leading-relaxed">
+                  <CardDescription className="text-muted-foreground font-medium mt-4 leading-relaxed">
                     {plan.description}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-8 pt-0 space-y-8">
-                  <div className="h-px bg-white/5" />
+                  <div className="h-px bg-accent/50" />
                   <ul className="space-y-4">
                     {plan.features.map((feature) => (
                       <li key={feature} className="flex items-start gap-3 text-sm font-medium">
                         <Check className="w-5 h-5 text-green-400 shrink-0" />
-                        <span className="text-slate-300">{feature}</span>
+                        <span className="text-foreground/80">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -212,7 +214,7 @@ function PricingPageContent() {
                       disabled={checkoutLoading}
                       variant={plan.buttonVariant}
                       className={`w-full h-14 rounded-2xl font-black text-lg shadow-xl group ${
-                        plan.highlight ? 'bg-white text-black hover:bg-slate-200' : 'border-white/10 hover:bg-white/5'
+                        plan.highlight ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'border-border hover:bg-accent/50'
                       }`}
                     >
                       {checkoutLoading ? (
@@ -229,7 +231,7 @@ function PricingPageContent() {
                       <Button
                         variant={plan.buttonVariant}
                         className={`w-full h-14 rounded-2xl font-black text-lg shadow-xl group ${
-                          plan.highlight ? 'bg-white text-black hover:bg-slate-200' : 'border-white/10 hover:bg-white/5'
+                          plan.highlight ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'border-border hover:bg-accent/50'
                         }`}
                       >
                         {plan.buttonText}
@@ -244,19 +246,19 @@ function PricingPageContent() {
         </div>
 
         {/* Features Comparison Highlights */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-12 py-10 border-y border-white/5">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-12 py-10 border-y border-border/70">
            {[
              { title: "Local Processing", desc: "Files never leave your browser context.", icon: HardDrive },
              { title: "Military Grade", desc: "Strips up to 120+ metadata fields.", icon: Shield },
              { title: "Batch Support", desc: "Process folders and ZIPs in one go.", icon: Zap },
            ].map((item) => (
              <div key={item.title} className="flex items-center gap-6">
-                <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center shrink-0">
+                <div className="w-14 h-14 rounded-2xl bg-accent/50 flex items-center justify-center shrink-0">
                   <item.icon className="w-6 h-6 text-purple-500" />
                 </div>
                 <div>
                   <h4 className="font-bold text-lg">{item.title}</h4>
-                  <p className="text-sm text-slate-500 font-medium">{item.desc}</p>
+                  <p className="text-sm text-muted-foreground font-medium">{item.desc}</p>
                 </div>
              </div>
            ))}
@@ -266,7 +268,7 @@ function PricingPageContent() {
         <section className="space-y-12">
           <div className="text-center space-y-4">
             <h3 className="text-4xl font-black tracking-tight uppercase">Security FAQ</h3>
-            <p className="text-slate-400 font-medium max-w-xl mx-auto">Everything you need to know about FileX pricing and security protocols.</p>
+            <p className="text-muted-foreground font-medium max-w-xl mx-auto">Everything you need to know about FileX pricing and security protocols.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {[
@@ -275,29 +277,29 @@ function PricingPageContent() {
               { q: "Do you offer education discounts?", a: "We do! Students and researchers can apply for a 50% lifetime discount on the Pro plan. Contact our support team with your EDU email." },
               { q: "Is there a limit on file size?", a: "Starter users can process files up to 10MB. Pro users have a 2GB per-file limit, handled efficiently via web streams." }
             ].map((faq) => (
-              <div key={faq.q} className="space-y-3 p-8 rounded-[2.5rem] bg-[#0f172a]/40 border border-white/5 hover:border-white/10 transition-colors">
+              <div key={faq.q} className="space-y-3 p-8 rounded-[2.5rem] bg-card/60 border border-border/70 hover:border-border transition-colors">
                 <h4 className="font-bold text-lg flex items-center gap-3">
                   <HelpCircle className="w-5 h-5 text-blue-500" />
                   {faq.q}
                 </h4>
-                <p className="text-sm text-slate-400 font-medium leading-relaxed">{faq.a}</p>
+                <p className="text-sm text-muted-foreground font-medium leading-relaxed">{faq.a}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="p-12 md:p-20 rounded-[4rem] bg-gradient-to-tr from-purple-600/20 via-blue-600/10 to-transparent border border-white/5 text-center space-y-8 relative overflow-hidden shadow-2xl">
+        <section className="p-12 md:p-20 rounded-[4rem] bg-gradient-to-tr from-purple-600/20 via-blue-600/10 to-transparent border border-border/70 text-center space-y-8 relative overflow-hidden shadow-2xl">
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent pointer-events-none" />
           <div className="relative space-y-6">
-            <Badge className="bg-white/10 text-white border-white/20 px-4 py-1.5 rounded-full text-xs font-black tracking-[0.2em] uppercase">
+            <Badge className="bg-foreground/10 text-foreground border-border px-4 py-1.5 rounded-full text-xs font-black tracking-[0.2em] uppercase">
               Join the Elite
             </Badge>
             <h3 className="text-4xl md:text-6xl font-black tracking-tighter max-w-3xl mx-auto uppercase leading-none">Ready to reclaim your digital sovereignty?</h3>
-            <p className="text-slate-400 text-lg max-w-xl mx-auto font-medium">Join 10,000+ privacy-conscious users who trust FileX with their most sensitive data.</p>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto font-medium">Join 10,000+ privacy-conscious users who trust FileX with their most sensitive data.</p>
             <div className="flex flex-wrap justify-center gap-4 pt-4">
-              <Button onClick={() => router.push(appPath("/"))} className="h-16 px-12 rounded-2xl bg-white text-black hover:bg-slate-200 font-black text-xl shadow-2xl shadow-white/10">Get Started Now</Button>
-              <Link href="/api-docs"><Button variant="outline" className="h-16 px-12 rounded-2xl border-white/10 hover:bg-white/5 font-black text-xl">View Documentation</Button></Link>
+              <Button onClick={() => router.push(appPath("/"))} className="h-16 px-12 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 font-black text-xl shadow-2xl shadow-black/10">Get Started Now</Button>
+              <Link href="/api-docs"><Button variant="outline" className="h-16 px-12 rounded-2xl border-border hover:bg-accent/50 font-black text-xl">View Documentation</Button></Link>
             </div>
           </div>
         </section>
@@ -311,15 +313,15 @@ function PricingPageContent() {
         </div>
 
         {/* Footer */}
-        <footer className="pt-20 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 opacity-50 text-[10px] font-black uppercase tracking-widest">
+        <footer className="pt-20 border-t border-border/70 flex flex-col md:flex-row justify-between items-center gap-8 opacity-50 text-[10px] font-black uppercase tracking-widest">
             <div className="flex items-center gap-4">
               <p>© 2025 KNIMEX. All rights reserved.</p>
             </div>
           <div className="flex gap-10">
-            <Link href="/" className="hover:text-white transition-colors">App</Link>
-            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-            <Link href="/contact" className="hover:text-white transition-colors">Support Center</Link>
+            <Link href="/" className="hover:text-foreground transition-colors">App</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+            <Link href="/contact" className="hover:text-foreground transition-colors">Support Center</Link>
           </div>
         </footer>
       </div>

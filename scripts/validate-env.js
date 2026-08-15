@@ -41,7 +41,8 @@ const optional = [
   'NEXT_PUBLIC_SITE_URL',
   'NEXT_PUBLIC_APP_BASE_PATH',
   'CORS_ALLOWED_ORIGINS',
-  'NODE_ENV'
+  'NODE_ENV',
+  'DATABASE_POOL_MAX'
 ];
 
 console.log('🔍 Validating Environment Variables...\n');
@@ -60,8 +61,18 @@ for (const key of required) {
     if (key === 'NEXT_PUBLIC_SUPABASE_URL' && !process.env[key].startsWith('https://')) {
       warnings.push(`${key} should start with https://`);
     }
-    if (key === 'DATABASE_URL' && !process.env[key].startsWith('postgresql://')) {
-      warnings.push(`${key} should start with postgresql://`);
+    if (key === 'DATABASE_URL' && !/^postgres(?:ql)?:\/\//.test(process.env[key])) {
+      warnings.push(`${key} should use a PostgreSQL connection URL`);
+    }
+    if (key === 'BETTER_AUTH_URL') {
+      try {
+        const authUrl = new URL(process.env[key]);
+        if (process.env.NODE_ENV === 'production' && authUrl.protocol !== 'https:') {
+          warnings.push(`${key} should use https:// in production`);
+        }
+      } catch {
+        warnings.push(`${key} is not a valid URL`);
+      }
     }
     if (key === 'CRON_SECRET' && process.env[key].length < 32) {
       warnings.push(`${key} should be at least 32 characters`);
@@ -90,6 +101,26 @@ if (process.env.NEXT_PUBLIC_APP_BASE_PATH && !/^\/[a-z0-9-]+$/i.test(process.env
 
 if (process.env.CORS_ALLOWED_ORIGINS?.split(',').some((origin) => origin.trim() === '*')) {
   warnings.push('CORS_ALLOWED_ORIGINS must not contain the wildcard *');
+}
+
+if (process.env.CORS_ALLOWED_ORIGINS) {
+  for (const origin of process.env.CORS_ALLOWED_ORIGINS.split(',')) {
+    try {
+      const parsedOrigin = new URL(origin.trim());
+      if (!['http:', 'https:'].includes(parsedOrigin.protocol) || parsedOrigin.pathname !== '/') {
+        warnings.push(`CORS origin should be an origin URL without a path: ${origin.trim()}`);
+      }
+    } catch {
+      warnings.push(`CORS origin is not a valid URL: ${origin.trim()}`);
+    }
+  }
+}
+
+if (process.env.DATABASE_POOL_MAX) {
+  const poolSize = Number.parseInt(process.env.DATABASE_POOL_MAX, 10);
+  if (!Number.isInteger(poolSize) || poolSize < 1 || poolSize > 10) {
+    warnings.push('DATABASE_POOL_MAX must be an integer between 1 and 10');
+  }
 }
 
 console.log('\n' + '='.repeat(60));

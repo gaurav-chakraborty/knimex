@@ -1,94 +1,84 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { asc, desc, like, or } from 'drizzle-orm';
 import { db } from '@/db';
 import { user } from '@/db/schema';
-import { desc, asc, like, or } from 'drizzle-orm';
+import { checkAdminAccess } from '@/lib/auth';
+import { privateJson } from '@/lib/admin-validation';
+
+const SORT_FIELDS = ['createdAt', 'name', 'email'] as const;
+type SortField = (typeof SORT_FIELDS)[number];
+
+function parseBoundedInteger(value: string | null, fallback: number, minimum: number, maximum: number) {
+  if (!value || !/^\d+$/.test(value)) return fallback;
+  return Math.min(Math.max(Number.parseInt(value, 10), minimum), maximum);
+}
+
+function sanitizeSearchInput(value: string | null) {
+  const trimmed = value?.trim().slice(0, 100) ?? '';
+  return trimmed ? trimmed.replace(/[%_\\]/g, '\\$&') : null;
+}
 
 export async function GET(request: NextRequest) {
   try {
+    const adminCheck = await checkAdminAccess();
+    if (!adminCheck.isAdmin) {
+      return privateJson(
+        { error: adminCheck.error || 'Unauthorized', code: adminCheck.user ? 'FORBIDDEN' : 'UNAUTHORIZED' },
+        adminCheck.user ? 403 : 401,
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    
-    // Parse pagination parameters
-    const limitParam = searchParams.get('limit');
-    const offsetParam = searchParams.get('offset');
-    const search = searchParams.get('search');
-    const sortBy = searchParams.get('sortBy') ?? 'createdAt';
-    const sortOrder = searchParams.get('sortOrder') ?? 'desc';
+    const limit = parseBoundedInteger(searchParams.get('limit'), 50, 1, 100);
+    const offset = parseBoundedInteger(searchParams.get('offset'), 0, 0, 100_000);
+    const search = sanitizeSearchInput(searchParams.get('search'));
+    const requestedSort = searchParams.get('sortBy');
+    const sortField: SortField = SORT_FIELDS.includes(requestedSort as SortField)
+      ? (requestedSort as SortField)
+      : 'createdAt';
+    const sortDirection = searchParams.get('sortOrder') === 'asc' ? 'asc' : 'desc';
 
-    // Validate and sanitize limit
-    let limit = limitParam ? parseInt(limitParam) : 50;
-    if (isNaN(limit) || limit < 1) {
-      limit = 50;
-    }
-    if (limit > 100) {
-      limit = 100;
-    }
-
-    // Validate and sanitize offset
-    const offset = offsetParam ? Math.max(0, parseInt(offsetParam)) : 0;
-
-    // Validate sortBy parameter
-    const validSortFields = ['createdAt', 'name', 'email'];
-    const sortField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
-
-    // Validate sortOrder parameter
-    const sortDirection = sortOrder === 'asc' ? 'asc' : 'desc';
-
-    // Build filter
-    const filter = (search && search.trim() !== '') 
-      ? or(
-          like(user.name, `%${search.trim()}%`),
-          like(user.email, `%${search.trim()}%`)
-        )
+    const filter = search
+      ? or(like(user.name, `%${search}%`), like(user.email, `%${search}%`))
       : undefined;
 
-    // Build sorting
-    let orderByClause;
-    if (sortDirection === 'asc') {
-      if (sortField === 'createdAt') orderByClause = asc(user.createdAt);
-      else if (sortField === 'name') orderByClause = asc(user.name);
-      else if (sortField === 'email') orderByClause = asc(user.email);
-    } else {
-      if (sortField === 'createdAt') orderByClause = desc(user.createdAt);
-      else if (sortField === 'name') orderByClause = desc(user.name);
-      else if (sortField === 'email') orderByClause = desc(user.email);
-    }
+    const orderByClause = sortDirection === 'asc'
+      ? sortField === 'createdAt'
+        ? asc(user.createdAt)
+        : sortField === 'name'
+          ? asc(user.name)
+          : asc(user.email)
+      : sortField === 'createdAt'
+        ? desc(user.createdAt)
+        : sortField === 'name'
+          ? desc(user.name)
+          : desc(user.email);
 
-    // Execute query
-    const users = await db.select({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      emailVerified: user.emailVerified,
-      image: user.image,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    }).from(user)
+    const users = await db
+      .select({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        image: user.image,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      })
+      .from(user)
       .where(filter)
-      .orderBy(orderByClause || desc(user.createdAt))
+      .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
 
-    // Format timestamps as ISO strings
-    const formattedUsers = users.map(u => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      emailVerified: u.emailVerified,
-      image: u.image,
-      createdAt: u.createdAt instanceof Date ? u.createdAt.toISOString() : new Date(u.createdAt).toISOString(),
-      updatedAt: u.updatedAt instanceof Date ? u.updatedAt.toISOString() : new Date(u.updatedAt).toISOString(),
-    }));
-
-    return NextResponse.json(formattedUsers, { status: 200 });
-
+    return privateJson(
+      users.map((record) => ({
+        ...record,
+        createdAt: record.createdAt.toISOString(),
+        updatedAt: record.updatedAt.toISOString(),
+      })),
+    );
   } catch (error) {
     console.error('GET users error:', error);
-    return NextResponse.json(
-      { 
-        error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error'),
-        code: 'INTERNAL_SERVER_ERROR'
-      },
-      { status: 500 }
-    );
+    return privateJson({ error: 'User directory unavailable', code: 'INTERNAL_SERVER_ERROR' }, 500);
   }
 }

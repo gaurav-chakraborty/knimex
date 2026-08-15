@@ -31,7 +31,7 @@ for pattern in "${required_patterns[@]}"; do
   fi
 done
 
-if git diff --name-only --diff-filter=ACM | grep -Eq '(^|/)(\.env($|\.)|.*\.(pem|key|p12|pfx)$)'; then
+if git diff --name-only --diff-filter=ACM | grep -E '(^|/)(\.env($|\.)|.*\.(pem|key|p12|pfx)$)' | grep -vEq '(^|/)\.env\.example$'; then
   printf '%s\n' 'ERROR: sensitive files are present in the working-tree diff'
   failures=$((failures + 1))
 else

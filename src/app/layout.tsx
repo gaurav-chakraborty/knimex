@@ -55,7 +55,7 @@ export default function RootLayout({
             strategy="afterInteractive"
             data-orchids-project-id="ea90ffb8-c80d-4a58-a133-17f6c1889bf6"
           /> */}
-          <ThemeProvider defaultTheme="dark" storageKey="knimex-ui-theme">
+          <ThemeProvider defaultTheme="light" storageKey="knimex-ui-theme">
             <ErrorReporter />
             {/* <Script
               src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts/route-messenger.js"
