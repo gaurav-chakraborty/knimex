@@ -18,7 +18,7 @@ const productCards = [
     title: "FileX",
     status: "Live product",
     description:
-      "Metadata review, document hygiene, privacy cleanup, and trust-focused file workflows under the KNIMEX umbrella.",
+      "Privacy-first metadata review, document hygiene, and trust-focused file workflows for teams that need a secure handoff layer.",
     href: appPath("/"),
     cta: "Open FileX",
     bullets: [
@@ -32,7 +32,7 @@ const productCards = [
     title: "BizDex",
     status: "Live product",
     description:
-      "Corporate intelligence, KYB research, and OSINT-oriented product experiences on a dedicated child path.",
+      "KYB, corporate intelligence, and evidence-led research workflows on a dedicated child path that still sits under the KNIMEX umbrella.",
     href: "/bizdex",
     cta: "Open BizDex",
     bullets: [
@@ -46,7 +46,7 @@ const productCards = [
     title: "CorpDex",
     status: "Reserved launch",
     description:
-      "The apex structure is now ready for additional commercial launches without another domain reconfiguration.",
+      "Reserved for the next enterprise launch, partner-facing module, or sector-specific surface without another domain reconfiguration.",
     href: "#products",
     cta: "Reserve the path",
     bullets: [
@@ -55,6 +55,24 @@ const productCards = [
       "Preserves one company identity",
     ],
     icon: Sparkles,
+  },
+];
+
+const operatingModelCards = [
+  {
+    title: "One enterprise front door",
+    description:
+      "Keep the company identity at the apex while routing visitors into the exact product, publication, or support flow they need.",
+  },
+  {
+    title: "Path-based product expansion",
+    description:
+      "Launch new commercial surfaces such as `/corpdex`, `/publications`, and `/resources` without fragmenting brand equity across domains.",
+  },
+  {
+    title: "Clear commercial routing",
+    description:
+      "Separate sales, support, product discovery, and publishing into predictable routes that enterprise buyers can trust quickly.",
   },
 ];
 
@@ -90,8 +108,8 @@ const supportCards = [
     title: "General contact",
     description:
       "Use this route for partnerships, media, collaboration requests, founder conversations, and broader product discovery.",
-    href: appPath("/contact"),
-    primary: "Contact KNIMEX",
+    href: "mailto:contact@knimex.com?subject=KNIMEX%20General%20Enquiry",
+    primary: "Email KNIMEX",
     secondaryHref: "#footer",
     secondary: "See contact routes",
     icon: Headset,
@@ -100,20 +118,20 @@ const supportCards = [
     title: "Ticketing and customer support",
     description:
       "Direct onboarding blockers, troubleshooting, account issues, and customer help through a visible support path.",
-    href: appPath("/contact"),
-    primary: "Support and ticketing",
-    secondaryHref: appPath("/api-docs"),
-    secondary: "Product documentation",
+    href: appPath("/contact?topic=support"),
+    primary: "Open FileX support",
+    secondaryHref: "/bizdex/support",
+    secondary: "BizDex support desk",
     icon: Ticket,
   },
   {
     title: "Commercial enquiries",
     description:
       "Keep a clean entry point for enterprise discussions, custom builds, implementation pricing, and strategic enquiries.",
-    href: appPath("/pricing"),
-    primary: "Pricing and plans",
-    secondaryHref: appPath("/contact"),
-    secondary: "Sales enquiries",
+    href: "mailto:contact@knimex.com?subject=KNIMEX%20Commercial%20Enquiry",
+    primary: "Commercial enquiry",
+    secondaryHref: "/bizdex",
+    secondary: "Open BizDex",
     icon: BriefcaseBusiness,
   },
 ];
@@ -131,10 +149,10 @@ const footerColumns = [
   {
     title: "Support",
     links: [
-      { label: "General contact", href: appPath("/contact") },
-      { label: "Ticketing and support", href: appPath("/contact") },
+      { label: "General contact", href: "mailto:contact@knimex.com" },
+      { label: "Ticketing and support", href: appPath("/contact?topic=support") },
       { label: "API and product docs", href: appPath("/api-docs") },
-      { label: "Pricing enquiries", href: appPath("/pricing") },
+      { label: "Pricing enquiries", href: "mailto:contact@knimex.com?subject=KNIMEX%20Pricing%20Enquiry" },
     ],
   },
   {
@@ -165,7 +183,7 @@ function SurfaceLink({
   children: React.ReactNode;
   primary?: boolean;
 }) {
-  if (href.startsWith("#")) {
+  if (href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("http")) {
     return (
       <a
         href={href}
@@ -174,6 +192,7 @@ function SurfaceLink({
             ? "inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5 hover:shadow-lg"
             : "inline-flex items-center gap-2 rounded-full border border-border bg-background/75 px-5 py-3 text-sm font-semibold transition-colors hover:bg-accent"
         }
+        {...(href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}
       >
         {children}
       </a>
@@ -200,13 +219,11 @@ export default function KnimexParent() {
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center gap-5 px-5 py-3 lg:px-8">
           <a href="#top" className="flex shrink-0 items-center gap-3" aria-label="KNIMEX home">
-            <span className="grid h-9 w-9 place-items-center rounded-xl border border-filex-blue/40 bg-accent font-mono text-sm font-bold text-filex-blue-deep dark:text-filex-cyan">
-              K
-            </span>
+            <img src="/brand/knimex/knimex-mark.svg" alt="KNIMEX mark" className="h-10 w-10 rounded-xl" />
             <span className="flex flex-col">
               <span className="font-mono text-sm font-bold tracking-[0.2em]">KNIMEX</span>
               <span className="text-xs text-muted-foreground">
-                Products, publishing, support and commercial paths
+                Enterprise products, publishing, support and commercial paths
               </span>
             </span>
           </a>
@@ -256,19 +273,20 @@ export default function KnimexParent() {
             <div className="rounded-[28px] border border-border bg-card/90 p-8 shadow-[0_24px_80px_-48px_hsl(var(--foreground)/0.65)]">
               <SectionLabel>Parent platform live at knimex.com</SectionLabel>
               <h1 className="mt-5 max-w-4xl text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
-                Build every KNIMEX product under one credible, expandable front door.
+                The enterprise front door for KNIMEX products, intelligence platforms, and commercial engagement.
               </h1>
               <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted-foreground">
-                KNIMEX now works as the parent layer for products, research, publishing,
-                founder updates, freebies, and support operations. Each product can live on
-                its own child path while the root site stays coherent, commercial, and easier
-                to trust.
+                KNIMEX is now structured as the parent layer for products, publishing,
+                support, founder updates, and future launches. Each product can live on
+                its own child path while the root site stays coherent, premium, and ready
+                for enterprise buyers.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <SurfaceLink href={appPath("/")} primary>
-                  Explore FileX
+                <SurfaceLink href="mailto:contact@knimex.com?subject=KNIMEX%20Enterprise%20Enquiry" primary>
+                  Enterprise enquiry
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </SurfaceLink>
+                <SurfaceLink href={appPath("/")}>Open FileX</SurfaceLink>
                 <SurfaceLink href="/bizdex">Open BizDex</SurfaceLink>
                 <SurfaceLink href="#support">Get support</SurfaceLink>
               </div>
@@ -292,7 +310,7 @@ export default function KnimexParent() {
             <aside className="rounded-[28px] border border-border bg-card/90 p-6 shadow-[0_24px_80px_-48px_hsl(var(--foreground)/0.65)]">
               <SectionLabel>Why this structure works</SectionLabel>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-                The apex belongs to the company, not a single product.
+                The apex belongs to the company, not to a single product.
               </h2>
               <div className="mt-6 grid gap-4">
                 {[
@@ -301,12 +319,12 @@ export default function KnimexParent() {
                     "Visitors understand the company first, then move into the right product path.",
                   ],
                   [
-                    "Commercial flexibility",
-                    "New offerings can launch under clean child paths without another domain rebuild.",
+                    "Buyer confidence",
+                    "Enterprise visitors can see products, support, and commercial routes without guessing where the real company lives.",
                   ],
                   [
-                    "Shared support layer",
-                    "Enquiries, ticketing, and product navigation sit in one predictable parent surface.",
+                    "Expansion without rework",
+                    "New offerings can launch under clean child paths without rebuilding the company domain model again.",
                   ],
                 ].map(([title, description]) => (
                   <div
@@ -319,6 +337,23 @@ export default function KnimexParent() {
                 ))}
               </div>
             </aside>
+          </div>
+        </section>
+
+        <section className="border-b border-border">
+          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
+            <SectionLabel>Operating model</SectionLabel>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">
+              Structure the portfolio like an enterprise system, not a loose collection of pages.
+            </h2>
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {operatingModelCards.map((card) => (
+                <div key={card.title} className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+                  <h3 className="text-lg font-semibold tracking-tight">{card.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{card.description}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -462,9 +497,7 @@ export default function KnimexParent() {
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:px-8">
           <div>
             <a href="#top" className="flex items-center gap-3">
-              <span className="grid h-8 w-8 place-items-center rounded-lg border border-white/20 bg-white/10 font-mono text-sm font-bold">
-                K
-              </span>
+              <img src="/brand/knimex/knimex-mark.svg" alt="KNIMEX mark" className="h-8 w-8 rounded-lg" />
               <span className="font-mono text-sm font-bold tracking-[0.2em]">KNIMEX</span>
             </a>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-300">

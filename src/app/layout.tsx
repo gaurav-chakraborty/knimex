@@ -42,12 +42,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Favicons */}
-        <link rel="icon" type="image/x-icon" href={`${appBasePath}/brand/favicons/favicon.ico`} />
-        <link rel="icon" type="image/png" sizes="16x16" href={`${appBasePath}/brand/favicons/favicon-16x16.png`} />
-        <link rel="icon" type="image/png" sizes="32x32" href={`${appBasePath}/brand/favicons/favicon-32x32.png`} />
-        <link rel="apple-touch-icon" sizes="180x180" href={`${appBasePath}/brand/favicons/apple-touch-icon.png`} />
-        <meta name="theme-color" content="#38BDF8" />
+        <link rel="icon" type="image/svg+xml" href="/brand/knimex/favicon.svg" />
+        <link rel="shortcut icon" href="/brand/knimex/favicon.svg" />
+        <meta name="theme-color" content="#0F172A" />
       </head>
         <body className="antialiased">
           {/* <Script

@@ -1,8 +1,8 @@
 import KnimexParent from "@/components/KnimexParent";
 
 export const metadata = {
-  title: "KNIMEX — Technology, tools and intelligent software",
-  description: "KNIMEX brings together SaaS applications, AI and developer tools, downloadable software, technical resources and engineering knowledge.",
+  title: "KNIMEX | Enterprise products, intelligence platforms, and digital infrastructure",
+  description: "KNIMEX is the parent operating surface for FileX, BizDex, future enterprise products, publishing, support operations, and commercial engagement.",
 };
 
 export default function KnimexHome() {

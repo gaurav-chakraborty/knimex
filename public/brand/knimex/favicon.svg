@@ -1,0 +1,18 @@
+<svg width="128" height="128" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="knimex-favicon-bg" x1="28" y1="24" x2="222" y2="232" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="0.52" stop-color="#0B2340"/>
+      <stop offset="1" stop-color="#0B7B63"/>
+    </linearGradient>
+    <linearGradient id="knimex-favicon-line" x1="68" y1="52" x2="200" y2="208" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7DD3FC"/>
+      <stop offset="0.45" stop-color="#2DD4BF"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#knimex-favicon-bg)"/>
+  <path d="M76 56V200" stroke="url(#knimex-favicon-line)" stroke-width="24" stroke-linecap="round"/>
+  <path d="M176 64L112 127.5L184 200" stroke="url(#knimex-favicon-line)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="188" cy="70" r="12" fill="#F8FAFC" fill-opacity="0.88"/>
+</svg>

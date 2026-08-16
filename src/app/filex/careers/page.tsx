@@ -52,9 +52,14 @@ export default function CareersPage() {
   return (
     <main className="min-h-screen bg-background px-4 py-12 text-foreground sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
-        <Link href={appPath("/")} className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" /> Back to FileX
-        </Link>
+        <div className="mb-8 flex flex-wrap items-center gap-4">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+            KNIMEX Home
+          </Link>
+          <Link href={appPath("/")} className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" /> Back to FileX
+          </Link>
+        </div>
 
         <div className="mb-10 max-w-2xl space-y-4">
           <div className="inline-flex items-center gap-2 rounded-full border border-filex-blue/30 bg-filex-blue/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-filex-blue-deep dark:text-filex-cyan">

@@ -608,6 +608,7 @@ export default function DownloadCenter() {
             <FileXLogo variant="standard" size="md" />
             <div className="flex items-center gap-6">
               <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+                  <Link href="/" className="hover:text-foreground transition-colors">KNIMEX Home</Link>
                   <Link href={`${appPath("/")}#processing-hub`} className="hover:text-foreground transition-colors">Tools</Link>
                   <Link href={appPath("/pricing")} className="hover:text-foreground transition-colors">Pricing</Link>
                   <Button variant="ghost" size="sm" onClick={startTour} className="text-filex-blue hover:text-filex-blue-deep hover:bg-filex-blue/10 gap-2">
@@ -637,6 +638,7 @@ export default function DownloadCenter() {
               )}
               <MobileNav
                 links={[
+                  { href: "/", label: "KNIMEX Home" },
                   { href: appPath("/pricing"), label: "Pricing" },
                   { href: session ? appPath("/account") : appPath("/login"), label: session ? "My Account" : "Sign In" },
                   { href: appPath("/contact"), label: "Contact" },
@@ -1241,6 +1243,7 @@ export default function DownloadCenter() {
             <div className="space-y-4">
               <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground">Product</h4>
               <nav className="flex flex-col gap-3 text-sm font-medium text-muted-foreground">
+                <Link href="/" className="hover:text-foreground transition-colors">KNIMEX Home</Link>
                 <Link href="#security-engine" className="hover:text-foreground transition-colors">Security Engine</Link>
                 <Link href={appPath("/api-docs")} className="hover:text-foreground transition-colors">API Docs</Link>
                 <Link href={appPath("/pricing")} className="hover:text-foreground transition-colors">Pricing Plans</Link>

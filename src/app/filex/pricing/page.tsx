@@ -134,6 +134,7 @@ function PricingPageContent() {
           </Link>
           <div className="flex items-center gap-6">
             <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+              <Link href="/" className="hover:text-foreground transition-colors">KNIMEX Home</Link>
               <Link href={appPath("/")} className="hover:text-foreground transition-colors">Back to App</Link>
               <Link href={appPath("/api-docs")} className="hover:text-foreground transition-colors">Documentation</Link>
             </nav>
@@ -145,6 +146,7 @@ function PricingPageContent() {
             </Link>
             <MobileNav
               links={[
+                { href: "/", label: "KNIMEX Home" },
                 { href: appPath("/"), label: "Back to App" },
                 { href: session?.user ? appPath("/account") : appPath("/login"), label: session?.user ? "My Account" : "Sign In" },
                 { href: appPath("/contact"), label: "Contact" },
