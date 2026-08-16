@@ -5,6 +5,16 @@
   "installCommand": "npm ci",
   "framework": "nextjs",
   "regions": ["iad1"],
+  "rewrites": [
+    {
+      "source": "/bizdex",
+      "destination": "https://bizdex.knimex.com/"
+    },
+    {
+      "source": "/bizdex/:match*",
+      "destination": "https://bizdex.knimex.com/:match*"
+    }
+  ],
   "crons": [
     {
       "path": "/filex/api/cron/keep-alive",
