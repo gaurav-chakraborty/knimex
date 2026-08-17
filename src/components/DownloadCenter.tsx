@@ -67,6 +67,46 @@ interface ExtractedMetadataField {
   description: string;
 }
 
+interface ExportOptionsState {
+  downloadCleaned: boolean;
+  generateLog: boolean;
+  exportJson: boolean;
+  createReport: boolean;
+  generateCertificate: boolean;
+}
+
+interface NamingOptionsState {
+  keepOriginal: boolean;
+  addSuffix: boolean;
+  customName: string;
+  addTimestamp: boolean;
+}
+
+interface SecurityOptionsState {
+  verifyIntegrity: boolean;
+  generateHash: boolean;
+  encryptedBackup: boolean;
+}
+
+interface BatchPreferencesState {
+  preserveFolders: boolean;
+  includeManifest: boolean;
+  autoSelectLowRisk: boolean;
+  batchLabel: string;
+}
+
+interface WorkflowProfile {
+  name: string;
+  description: string;
+  template: string;
+  privacyLevel: number;
+  compression: string;
+  exportOptions: ExportOptionsState;
+  namingOptions: NamingOptionsState;
+  securityOptions: SecurityOptionsState;
+  batchPreferences: BatchPreferencesState;
+}
+
 const SUGGESTION_BY_RISK: Record<"high" | "medium" | "low", string> = {
   high: "Recommended: Remove immediately",
   medium: "Recommended: Remove before sharing",
@@ -74,6 +114,8 @@ const SUGGESTION_BY_RISK: Record<"high" | "medium" | "low", string> = {
 };
 
 const METADATA_BATCH_SIZE = 10;
+const FILEX_PREFERENCES_STORAGE_KEY = "filex-user-preferences-v2";
+const DEFAULT_WORKFLOW_PROFILE = "balanced";
 type FileWithRelativePath = File & { webkitRelativePath?: string };
 type FileSystemEntryLike = {
   isFile: boolean;
@@ -110,6 +152,68 @@ function outputPath(file: File, fileName: string): string {
   const lastSlash = relativePath.lastIndexOf("/");
   const directory = lastSlash >= 0 ? relativePath.slice(0, lastSlash + 1) : "";
   return `${directory}${fileName}`.replace(/^\/+/, "");
+}
+
+function sanitizePathSegment(value: string): string {
+  return value.trim().replace(/[^\w-]+/g, "_").replace(/^_+|_+$/g, "");
+}
+
+function outputPathForPreference(
+  file: File,
+  fileName: string,
+  preferences: BatchPreferencesState,
+): string {
+  const basePath = preferences.preserveFolders ? outputPath(file, fileName) : fileName;
+  const label = sanitizePathSegment(preferences.batchLabel);
+  return label ? `${label}/${basePath}` : basePath;
+}
+
+function rootOutputPath(fileName: string, preferences: BatchPreferencesState): string {
+  const label = sanitizePathSegment(preferences.batchLabel);
+  return label ? `${label}/${fileName}` : fileName;
+}
+
+function splitFileName(fileName: string): { baseName: string; extension: string } {
+  const dotIndex = fileName.lastIndexOf(".");
+  if (dotIndex <= 0) return { baseName: fileName, extension: "" };
+  return {
+    baseName: fileName.slice(0, dotIndex),
+    extension: fileName.slice(dotIndex + 1),
+  };
+}
+
+function buildExportFileName(
+  file: File,
+  index: number,
+  namingOptions: NamingOptionsState,
+  sessionStamp: string,
+): string {
+  const { baseName: originalBaseName, extension } = splitFileName(file.name);
+  const customBase = namingOptions.customName.trim();
+  const numberedCustomBase = customBase ? `${sanitizePathSegment(customBase)}_${String(index + 1).padStart(2, "0")}` : "";
+  let nextBaseName = namingOptions.keepOriginal || !numberedCustomBase ? originalBaseName : numberedCustomBase;
+  if (namingOptions.addSuffix) nextBaseName += "_secured";
+  if (namingOptions.addTimestamp) nextBaseName += `_${sessionStamp}`;
+  return extension ? `${nextBaseName}.${extension}` : nextBaseName;
+}
+
+function base64ToBytes(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes;
+}
+
+async function sha256Hex(data: Blob | Uint8Array): Promise<string> {
+  const bytes = data instanceof Uint8Array
+    ? data
+    : new Uint8Array(await data.arrayBuffer());
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function fileWithRelativePath(file: File, relativePath: string): File {
@@ -237,10 +341,107 @@ const TEMPLATES: Record<string, Template> = {
   }
 };
 
+const WORKFLOW_PROFILES: Record<string, WorkflowProfile> = {
+  balanced: {
+    name: "Balanced review",
+    description: "A production-safe default for everyday document sharing and client delivery.",
+    template: "custom",
+    privacyLevel: 78,
+    compression: "smart",
+    exportOptions: {
+      downloadCleaned: true,
+      generateLog: true,
+      exportJson: false,
+      createReport: false,
+      generateCertificate: false,
+    },
+    namingOptions: {
+      keepOriginal: true,
+      addSuffix: true,
+      customName: "",
+      addTimestamp: false,
+    },
+    securityOptions: {
+      verifyIntegrity: true,
+      generateHash: true,
+      encryptedBackup: false,
+    },
+    batchPreferences: {
+      preserveFolders: true,
+      includeManifest: true,
+      autoSelectLowRisk: false,
+      batchLabel: "",
+    },
+  },
+  counsel: {
+    name: "Counsel ready",
+    description: "Heavier scrubbing, evidence artifacts, and folder preservation for legal or diligence use.",
+    template: "job",
+    privacyLevel: 92,
+    compression: "max",
+    exportOptions: {
+      downloadCleaned: true,
+      generateLog: true,
+      exportJson: true,
+      createReport: true,
+      generateCertificate: true,
+    },
+    namingOptions: {
+      keepOriginal: true,
+      addSuffix: true,
+      customName: "",
+      addTimestamp: true,
+    },
+    securityOptions: {
+      verifyIntegrity: true,
+      generateHash: true,
+      encryptedBackup: false,
+    },
+    batchPreferences: {
+      preserveFolders: true,
+      includeManifest: true,
+      autoSelectLowRisk: true,
+      batchLabel: "counsel-ready",
+    },
+  },
+  publisher: {
+    name: "Publisher export",
+    description: "Cleaner naming and flatter export bundles for press kits, blogs, and publication drops.",
+    template: "social",
+    privacyLevel: 88,
+    compression: "smart",
+    exportOptions: {
+      downloadCleaned: true,
+      generateLog: true,
+      exportJson: false,
+      createReport: false,
+      generateCertificate: false,
+    },
+    namingOptions: {
+      keepOriginal: false,
+      addSuffix: true,
+      customName: "release",
+      addTimestamp: false,
+    },
+    securityOptions: {
+      verifyIntegrity: true,
+      generateHash: false,
+      encryptedBackup: false,
+    },
+    batchPreferences: {
+      preserveFolders: false,
+      includeManifest: true,
+      autoSelectLowRisk: true,
+      batchLabel: "publication-drop",
+    },
+  },
+};
+
 export default function DownloadCenter() {
   const { data: session } = useSession();
   const router = useRouter();
   const [userPlan, setUserPlan] = useState<string>("free");
+  const defaultProfile = WORKFLOW_PROFILES[DEFAULT_WORKFLOW_PROFILE];
 
   useEffect(() => {
     if (!session?.user) return;
@@ -251,8 +452,9 @@ export default function DownloadCenter() {
       .catch(() => {});
   }, [session]);
 
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("custom");
-  const [privacyLevel, setPrivacyLevel] = useState(75);
+  const [workflowProfile, setWorkflowProfile] = useState<string>(DEFAULT_WORKFLOW_PROFILE);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>(defaultProfile.template);
+  const [privacyLevel, setPrivacyLevel] = useState(defaultProfile.privacyLevel);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [risks, setRisks] = useState<DetectedRisk[]>([]);
@@ -261,6 +463,7 @@ export default function DownloadCenter() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [watermarkEditorFile, setWatermarkEditorFile] = useState<File | null>(null);
   const [processedCount, setProcessedCount] = useState(12842);
+  const [preferencesHydrated, setPreferencesHydrated] = useState(false);
 
   // Guided Tour State
   const [tourStep, setTourStep] = useState<number | null>(null);
@@ -316,27 +519,13 @@ export default function DownloadCenter() {
   }, []);
 
   // Export Settings State
-  const [exportOptions, setExportOptions] = useState({
-    downloadCleaned: true,
-    generateLog: true,
-    exportJson: false,
-    createReport: false,
-    generateCertificate: false
-  });
+  const [exportOptions, setExportOptions] = useState<ExportOptionsState>(() => ({ ...defaultProfile.exportOptions }));
 
-  const [namingOptions, setNamingOptions] = useState({
-    keepOriginal: false,
-    addSuffix: true,
-    customName: "",
-    addTimestamp: false
-  });
+  const [namingOptions, setNamingOptions] = useState<NamingOptionsState>(() => ({ ...defaultProfile.namingOptions }));
 
-  const [compression, setCompression] = useState("smart");
-  const [securityOptions, setSecurityOptions] = useState({
-    verifyIntegrity: true,
-    generateHash: false,
-    encryptedBackup: false
-  });
+  const [compression, setCompression] = useState(defaultProfile.compression);
+  const [securityOptions, setSecurityOptions] = useState<SecurityOptionsState>(() => ({ ...defaultProfile.securityOptions }));
+  const [batchPreferences, setBatchPreferences] = useState<BatchPreferencesState>(() => ({ ...defaultProfile.batchPreferences }));
 
   const [fileSizeEstimates] = useState({
     downloadCleaned: "Variable",
@@ -346,12 +535,87 @@ export default function DownloadCenter() {
     generateCertificate: "240 KB"
   });
 
+  const applyWorkflowProfile = useCallback((profileId: string) => {
+    const profile = WORKFLOW_PROFILES[profileId];
+    if (!profile) return;
+    setWorkflowProfile(profileId);
+    setSelectedTemplate(profile.template);
+    setPrivacyLevel(profile.privacyLevel);
+    setExportOptions({ ...profile.exportOptions });
+    setNamingOptions({ ...profile.namingOptions });
+    setCompression(profile.compression);
+    setSecurityOptions({ ...profile.securityOptions });
+    setBatchPreferences({ ...profile.batchPreferences });
+  }, []);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(FILEX_PREFERENCES_STORAGE_KEY);
+      if (!stored) {
+        setPreferencesHydrated(true);
+        return;
+      }
+      const parsed = JSON.parse(stored) as Partial<{
+        workflowProfile: string;
+        selectedTemplate: string;
+        privacyLevel: number;
+        exportOptions: ExportOptionsState;
+        namingOptions: NamingOptionsState;
+        compression: string;
+        securityOptions: SecurityOptionsState;
+        batchPreferences: BatchPreferencesState;
+      }>;
+      if (parsed.workflowProfile && WORKFLOW_PROFILES[parsed.workflowProfile]) {
+        setWorkflowProfile(parsed.workflowProfile);
+      }
+      if (typeof parsed.selectedTemplate === "string") setSelectedTemplate(parsed.selectedTemplate);
+      if (typeof parsed.privacyLevel === "number") setPrivacyLevel(parsed.privacyLevel);
+      if (parsed.exportOptions) setExportOptions((previous) => ({ ...previous, ...parsed.exportOptions }));
+      if (parsed.namingOptions) setNamingOptions((previous) => ({ ...previous, ...parsed.namingOptions }));
+      if (typeof parsed.compression === "string") setCompression(parsed.compression);
+      if (parsed.securityOptions) setSecurityOptions((previous) => ({ ...previous, ...parsed.securityOptions }));
+      if (parsed.batchPreferences) setBatchPreferences((previous) => ({ ...previous, ...parsed.batchPreferences }));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setPreferencesHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!preferencesHydrated) return;
+    localStorage.setItem(
+      FILEX_PREFERENCES_STORAGE_KEY,
+      JSON.stringify({
+        workflowProfile,
+        selectedTemplate,
+        privacyLevel,
+        exportOptions,
+        namingOptions,
+        compression,
+        securityOptions,
+        batchPreferences,
+      }),
+    );
+  }, [
+    batchPreferences,
+    compression,
+    exportOptions,
+    namingOptions,
+    preferencesHydrated,
+    privacyLevel,
+    securityOptions,
+    selectedTemplate,
+    workflowProfile,
+  ]);
+
   const stageFiles = useCallback(async (incomingFiles: File[]) => {
     if (incomingFiles.length === 0) return;
 
     const nextFiles = Array.from(new Map(
       [...uploadedFiles, ...incomingFiles].map((file) => [fileKey(file), file]),
     ).values());
+    const duplicateCount = uploadedFiles.length + incomingFiles.length - nextFiles.length;
     setIsProcessing(true);
     setBatchProgress({ completed: 0, total: nextFiles.length });
     setUploadedFiles(nextFiles);
@@ -365,6 +629,7 @@ export default function DownloadCenter() {
         (completed, total) => setBatchProgress({ completed, total }),
       );
       const detected = new Map<string, DetectedRisk>();
+      const shouldAutoSelectLowRisk = batchPreferences.autoSelectLowRisk || privacyLevel >= 90 || selectedTemplate === "social";
       for (const fileResult of fileResults) {
         for (const field of fileResult.fields) {
           if (detected.has(field.key)) continue;
@@ -376,7 +641,7 @@ export default function DownloadCenter() {
             label: field.description,
             description: value,
             suggestion: SUGGESTION_BY_RISK[field.riskLevel],
-            isChecked: field.riskLevel !== "low",
+            isChecked: field.riskLevel === "high" || field.riskLevel === "medium" || shouldAutoSelectLowRisk,
             originalValue: value,
             cleanedValue: "[Removed]",
           });
@@ -385,6 +650,9 @@ export default function DownloadCenter() {
 
       const riskList = Array.from(detected.values());
       setRisks(riskList);
+      if (duplicateCount > 0) {
+        toast.info(`${duplicateCount} duplicate file(s) skipped while preserving the current batch queue.`);
+      }
       const highCount = riskList.filter((r) => r.type === "high").length;
       if (riskList.length === 0) {
         toast.success(`No risky metadata detected across ${nextFiles.length} file(s).`);
@@ -399,7 +667,7 @@ export default function DownloadCenter() {
     } finally {
       setIsProcessing(false);
     }
-  }, [uploadedFiles]);
+  }, [batchPreferences.autoSelectLowRisk, privacyLevel, selectedTemplate, uploadedFiles]);
 
   const onDrop = useCallback(async (acceptedFiles: File[], _fileRejections: unknown[], event: unknown) => {
     try {
@@ -442,6 +710,36 @@ export default function DownloadCenter() {
     [uploadedFiles]
   );
 
+  const activeTemplate = useMemo(
+    () => (selectedTemplate === "custom" ? null : TEMPLATES[selectedTemplate] ?? null),
+    [selectedTemplate],
+  );
+
+  const batchSummary = useMemo(() => {
+    const folderSet = new Set<string>();
+    let imageCount = 0;
+    let documentCount = 0;
+    let videoCount = 0;
+
+    for (const file of uploadedFiles) {
+      const relativePath = getRelativeFilePath(file).replaceAll("\\", "/");
+      const lastSlash = relativePath.lastIndexOf("/");
+      if (lastSlash > 0) folderSet.add(relativePath.slice(0, lastSlash));
+
+      if (file.type.startsWith("image/")) imageCount += 1;
+      else if (file.type.startsWith("video/")) videoCount += 1;
+      else documentCount += 1;
+    }
+
+    return {
+      folders: folderSet.size,
+      imageCount,
+      documentCount,
+      videoCount,
+      totalSizeMb: uploadedFiles.reduce((total, file) => total + file.size, 0) / (1024 * 1024),
+    };
+  }, [uploadedFiles]);
+
   const applyWatermarkRemoval = (originalFile: File, cleanedFile: File) => {
     setUploadedFiles((files) => files.map((file) => file === originalFile ? cleanedFile : file));
     toast.success(`${originalFile.name} is ready with watermark cleanup applied.`);
@@ -457,6 +755,11 @@ export default function DownloadCenter() {
     const score = totalRisks === 0 ? 100 : Math.round((resolved / totalRisks) * 100);
     return { resolved, totalRisks, cleanedFields, preservedFields, score };
   }, [risks]);
+
+  const selectedDeliverableCount = useMemo(
+    () => Object.values(exportOptions).filter(Boolean).length,
+    [exportOptions],
+  );
 
   const handleDownload = async () => {
     if (uploadedFiles.length === 0) {
@@ -474,6 +777,11 @@ export default function DownloadCenter() {
     const zip = new JSZip();
 
     try {
+      const processedAt = new Date();
+      const processedAtIso = processedAt.toISOString();
+      const sessionStamp = processedAtIso.replace(/[-:]/g, "").replace(/\..+/, "");
+      const manifestEntries: Array<Record<string, string | number | boolean>> = [];
+
       // Strip metadata server-side in ten-file windows so recursive folder batches
       // can exceed one request without exceeding the API's per-request limit.
       let cleanedByIndex: string[] | null = null;
@@ -506,32 +814,34 @@ export default function DownloadCenter() {
       // Process each file
       for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i];
-        const baseName = namingOptions.customName || file.name.split('.')[0];
-        let fileName = baseName;
-        if (namingOptions.addSuffix) fileName += "_cleaned";
-        if (namingOptions.addTimestamp) fileName += `_${Date.now()}`;
-
-        const extension = file.name.split('.').pop();
-        const fullFileName = `${fileName}.${extension}`;
+        const fullFileName = buildExportFileName(file, i, namingOptions, sessionStamp);
+        const cleanedBase64 = cleanedByIndex?.[i] ?? null;
+        const cleanedOutputPath = outputPathForPreference(file, fullFileName, batchPreferences);
+        const sha256 = securityOptions.generateHash
+          ? await sha256Hex(cleanedBase64 ? base64ToBytes(cleanedBase64) : file)
+          : null;
 
         // 1. Cleaned File — actual metadata-stripped bytes from the engine
         if (exportOptions.downloadCleaned) {
-          const cleanedBase64 = cleanedByIndex?.[i];
           if (cleanedBase64) {
-            zip.file(outputPath(file, fullFileName), cleanedBase64, { base64: true });
+            zip.file(cleanedOutputPath, cleanedBase64, { base64: true });
           } else {
-            zip.file(outputPath(file, fullFileName), file);
+            zip.file(cleanedOutputPath, file);
           }
         }
 
         // 2. Generate Log
         if (exportOptions.generateLog) {
           const logContent = `Privacy Log for ${file.name}\n` + 
-            `Timestamp: ${new Date().toISOString()}\n` +
+            `Timestamp: ${processedAtIso}\n` +
+            `Workflow profile: ${WORKFLOW_PROFILES[workflowProfile].name}\n` +
+            `Template: ${activeTemplate?.name ?? "Manual/Custom"}\n` +
+            `Privacy level: ${privacyLevel}%\n` +
             `Watermark cleanup: ${file.name.includes("_watermark_removed") ? "APPLIED LOCALLY" : "NOT REQUESTED"}\n` +
+            `SHA-256: ${sha256 ?? "Not requested"}\n` +
             `-----------------------------------\n` +
             risks.map(r => `${r.label}: ${r.isChecked ? 'STRIPPED' : 'PRESERVED'} (Original: ${r.originalValue})`).join("\n");
-          zip.file(outputPath(file, `${fileName}_privacy_log.txt`), logContent);
+          zip.file(outputPathForPreference(file, `${fullFileName.replace(/\.[^.]+$/, "")}_privacy_log.txt`, batchPreferences), logContent);
         }
 
         // 3. Export JSON
@@ -539,11 +849,15 @@ export default function DownloadCenter() {
           const jsonContent = JSON.stringify({
             file: file.name,
             originalSize: file.size,
-            processedAt: new Date().toISOString(),
+            processedAt: processedAtIso,
+            workflowProfile,
+            selectedTemplate,
+            privacyLevel,
             riskAnalysis: risks,
-            watermarkCleanupApplied: file.name.includes("_watermark_removed")
+            watermarkCleanupApplied: file.name.includes("_watermark_removed"),
+            sha256,
           }, null, 2);
-          zip.file(outputPath(file, `${fileName}_metadata_snapshot.json`), jsonContent);
+          zip.file(outputPathForPreference(file, `${fullFileName.replace(/\.[^.]+$/, "")}_metadata_snapshot.json`, batchPreferences), jsonContent);
         }
 
         // 4. Create HTML Report
@@ -555,11 +869,13 @@ export default function DownloadCenter() {
                 <h1>Privacy Audit Report</h1>
                 <h2>File: ${file.name}</h2>
                 <p>Privacy Score: ${stats.score}%</p>
+                <p>Workflow Profile: ${WORKFLOW_PROFILES[workflowProfile].name}</p>
+                <p>SHA-256: ${sha256 ?? "Not requested"}</p>
                 <ul>${risks.map(r => `<li>${r.label}: ${r.isChecked ? '✅ Secure' : '⚠️ Exposed'}</li>`).join('')}</ul>
               </body>
             </html>
           `;
-          zip.file(outputPath(file, `${fileName}_audit_report.html`), reportHtml);
+          zip.file(outputPathForPreference(file, `${fullFileName.replace(/\.[^.]+$/, "")}_audit_report.html`, batchPreferences), reportHtml);
         }
 
         // 5. Generate PDF Certificate
@@ -569,17 +885,55 @@ export default function DownloadCenter() {
           doc.text("Certificate of Privacy Verification", 20, 30);
           doc.setFontSize(12);
           doc.text(`File Name: ${file.name}`, 20, 50);
-          doc.text(`Date of Audit: ${new Date().toLocaleDateString()}`, 20, 60);
+          doc.text(`Date of Audit: ${processedAt.toLocaleDateString()}`, 20, 60);
           doc.text(`Verification ID: ${Math.random().toString(36).substring(7).toUpperCase()}`, 20, 70);
           doc.text(`Status: METADATA STRIPPED & VERIFIED`, 20, 90);
+          if (sha256) doc.text(`SHA-256: ${sha256.slice(0, 36)}...`, 20, 105);
           const pdfBlob = doc.output("blob");
-          zip.file(outputPath(file, `${fileName}_privacy_cert.pdf`), pdfBlob);
+          zip.file(outputPathForPreference(file, `${fullFileName.replace(/\.[^.]+$/, "")}_privacy_cert.pdf`, batchPreferences), pdfBlob);
         }
+
+        manifestEntries.push({
+          sourcePath: getRelativeFilePath(file),
+          outputPath: cleanedOutputPath,
+          sizeBytes: file.size,
+          watermarkCleanupApplied: file.name.includes("_watermark_removed"),
+          selectedRiskCount: risks.filter((risk) => risk.isChecked).length,
+          sha256: sha256 ?? "",
+        });
+      }
+
+      if (batchPreferences.includeManifest) {
+        zip.file(
+          rootOutputPath("batch_manifest.json", batchPreferences),
+          JSON.stringify(
+            {
+              profile: WORKFLOW_PROFILES[workflowProfile].name,
+              template: activeTemplate?.name ?? "Manual/Custom",
+              privacyLevel,
+              preserveFolders: batchPreferences.preserveFolders,
+              compression,
+              generatedAt: processedAtIso,
+              files: manifestEntries,
+            },
+            null,
+            2,
+          ),
+        );
       }
 
       // Generate and trigger download
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-      const bundleName = uploadedFiles.length > 1 ? "filex_secure_bundle.zip" : "filex_secure_download.zip";
+      const zipBlob = await zip.generateAsync({
+        type: "blob",
+        compression: compression === "none" ? "STORE" : "DEFLATE",
+        compressionOptions: compression === "none"
+          ? undefined
+          : { level: compression === "max" ? 9 : compression === "fast" ? 3 : 6 },
+      });
+      const bundlePrefix = sanitizePathSegment(batchPreferences.batchLabel);
+      const bundleName = bundlePrefix
+        ? `${bundlePrefix}_${uploadedFiles.length > 1 ? "filex_secure_batch" : "filex_secure_download"}.zip`
+        : uploadedFiles.length > 1 ? "filex_secure_batch.zip" : "filex_secure_download.zip";
       saveAs(zipBlob, bundleName);
       
       toast.success("Secure files downloaded successfully!");
@@ -720,33 +1074,116 @@ export default function DownloadCenter() {
                 </h2>
                 <Card className="bg-card/80 border-border/70 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl">
                   <CardContent className="p-8 space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-3">
-                        <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Metadata Template</Label>
-                        <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                          <SelectTrigger className="bg-background border-border h-12 rounded-xl focus:ring-filex-blue/50">
-                            <SelectValue placeholder="Select Template" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-card border-border text-popover-foreground rounded-xl">
-                            {Object.entries(TEMPLATES).map(([id, t]) => (
-                              <SelectItem key={id} value={id} className="p-3 focus:bg-filex-blue/10">
-                                <div className="flex flex-col">
-                                  <span className="font-bold text-sm">{t.name}</span>
-                                  <span className="text-[10px] text-muted-foreground">{t.description}</span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                            <SelectItem value="custom" className="p-3">Manual/Custom Mode</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Privacy Aggression</Label>
-                          <Badge variant="outline" className="text-[10px] border-filex-blue/30 text-filex-blue">{privacyLevel}%</Badge>
+                    <div className="grid grid-cols-1 gap-8 xl:grid-cols-[1.2fr_1fr]">
+                      <div className="space-y-8">
+                        <div className="space-y-3">
+                          <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Workflow Profile</Label>
+                          <Select value={workflowProfile} onValueChange={applyWorkflowProfile}>
+                            <SelectTrigger className="bg-background border-border h-12 rounded-xl focus:ring-filex-blue/50">
+                              <SelectValue placeholder="Select workflow profile" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-card border-border text-popover-foreground rounded-xl">
+                              {Object.entries(WORKFLOW_PROFILES).map(([id, profile]) => (
+                                <SelectItem key={id} value={id} className="p-3 focus:bg-filex-blue/10">
+                                  <div className="flex flex-col">
+                                    <span className="font-bold text-sm">{profile.name}</span>
+                                    <span className="text-[10px] text-muted-foreground">{profile.description}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <Slider value={[privacyLevel]} onValueChange={(v) => setPrivacyLevel(v[0])} max={100} className="py-4" />
-                        <p className="text-[10px] text-muted-foreground font-medium italic">Higher levels strip more deeply embedded markers.</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-3">
+                            <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Metadata Template</Label>
+                            <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                              <SelectTrigger className="bg-background border-border h-12 rounded-xl focus:ring-filex-blue/50">
+                                <SelectValue placeholder="Select Template" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-card border-border text-popover-foreground rounded-xl">
+                                {Object.entries(TEMPLATES).map(([id, t]) => (
+                                  <SelectItem key={id} value={id} className="p-3 focus:bg-filex-blue/10">
+                                    <div className="flex flex-col">
+                                      <span className="font-bold text-sm">{t.name}</span>
+                                      <span className="text-[10px] text-muted-foreground">{t.description}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                                <SelectItem value="custom" className="p-3">Manual/Custom Mode</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Privacy Aggression</Label>
+                              <Badge variant="outline" className="text-[10px] border-filex-blue/30 text-filex-blue">{privacyLevel}%</Badge>
+                            </div>
+                            <Slider value={[privacyLevel]} onValueChange={(v) => setPrivacyLevel(v[0])} max={100} className="py-4" />
+                            <p className="text-[10px] text-muted-foreground font-medium italic">Higher levels strip more deeply embedded markers and can auto-select low-risk cleanup items.</p>
+                          </div>
+                        </div>
+                        {activeTemplate && (
+                          <div className="rounded-3xl border border-border/70 bg-accent/40 p-5 space-y-4">
+                            <div>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-filex-cyan">Template behavior</p>
+                              <h3 className="mt-1 text-lg font-semibold">{activeTemplate.name}</h3>
+                              <p className="text-sm text-muted-foreground">{activeTemplate.description}</p>
+                            </div>
+                            <div className="grid gap-3">
+                              {activeTemplate.settings.map((setting) => (
+                                <div key={setting.id} className="flex items-start justify-between gap-4 rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
+                                  <div>
+                                    <p className="text-sm font-semibold text-foreground">{setting.label}</p>
+                                    {setting.value && <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{setting.value}</p>}
+                                  </div>
+                                  <Badge variant="outline" className={setting.enabled ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-300" : "border-border text-muted-foreground"}>
+                                    {setting.enabled ? "Applied" : "Optional"}
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="rounded-3xl border border-border/70 bg-accent/40 p-6 space-y-5">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-filex-blue">Batch Preferences</p>
+                          <h3 className="mt-1 text-lg font-semibold">Delivery tuned to your workflow</h3>
+                          <p className="text-sm text-muted-foreground">These settings persist in this browser and shape how FileX stages, names, and exports each batch.</p>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">Preserve folder structure</p>
+                              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Keep nested directories intact inside the final archive.</p>
+                            </div>
+                            <Checkbox checked={batchPreferences.preserveFolders} onCheckedChange={(value) => setBatchPreferences((previous) => ({ ...previous, preserveFolders: !!value }))} className="h-5 w-5 rounded-md" />
+                          </div>
+                          <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">Generate batch manifest</p>
+                              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Include a root-level JSON manifest with queue, output paths, and audit data.</p>
+                            </div>
+                            <Checkbox checked={batchPreferences.includeManifest} onCheckedChange={(value) => setBatchPreferences((previous) => ({ ...previous, includeManifest: !!value }))} className="h-5 w-5 rounded-md" />
+                          </div>
+                          <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">Auto-select low-risk cleanup</p>
+                              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Useful for social drops, counsel review, and one-click batch hardening.</p>
+                            </div>
+                            <Checkbox checked={batchPreferences.autoSelectLowRisk} onCheckedChange={(value) => setBatchPreferences((previous) => ({ ...previous, autoSelectLowRisk: !!value }))} className="h-5 w-5 rounded-md" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Batch label</Label>
+                            <Input
+                              placeholder="Optional root folder or delivery label"
+                              className="bg-background border-border rounded-xl h-11 text-sm focus:ring-filex-blue/50"
+                              value={batchPreferences.batchLabel}
+                              onChange={(event) => setBatchPreferences((previous) => ({ ...previous, batchLabel: event.target.value }))}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -851,6 +1288,24 @@ export default function DownloadCenter() {
                       <div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-filex-gradient transition-[width] duration-200" style={{ width: `${batchProgress.total ? (batchProgress.completed / batchProgress.total) * 100 : 0}%` }} /></div>
                     </div>
                   )}
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                    <div className="rounded-2xl border border-border/60 bg-accent/40 p-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Folders</p>
+                      <p className="mt-2 text-2xl font-black text-foreground">{batchSummary.folders}</p>
+                    </div>
+                    <div className="rounded-2xl border border-border/60 bg-accent/40 p-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Images</p>
+                      <p className="mt-2 text-2xl font-black text-foreground">{batchSummary.imageCount}</p>
+                    </div>
+                    <div className="rounded-2xl border border-border/60 bg-accent/40 p-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Docs/Other</p>
+                      <p className="mt-2 text-2xl font-black text-foreground">{batchSummary.documentCount}</p>
+                    </div>
+                    <div className="rounded-2xl border border-border/60 bg-accent/40 p-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total Size</p>
+                      <p className="mt-2 text-2xl font-black text-foreground">{batchSummary.totalSizeMb.toFixed(1)}<span className="text-xs text-muted-foreground"> MB</span></p>
+                    </div>
+                  </div>
                   {imageFiles.length > 0 && <p className="text-[10px] font-medium italic text-muted-foreground">Watermark cleanup is local and intended for content you own or are authorized to edit.</p>}
                 </section>
               )}
@@ -970,6 +1425,10 @@ export default function DownloadCenter() {
                         <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Naming Protocols</Label>
                         <div className="space-y-3">
                           <div className="flex items-center gap-3">
+                            <Checkbox id="keepOriginal" checked={namingOptions.keepOriginal} onCheckedChange={(v) => setNamingOptions({...namingOptions, keepOriginal: !!v})} className="rounded" />
+                            <Label htmlFor="keepOriginal" className="text-xs font-medium cursor-pointer">Keep original base name</Label>
+                          </div>
+                          <div className="flex items-center gap-3">
                             <Checkbox id="ts" checked={namingOptions.addTimestamp} onCheckedChange={(v) => setNamingOptions({...namingOptions, addTimestamp: !!v})} className="rounded" />
                             <Label htmlFor="ts" className="text-xs font-medium cursor-pointer">Append Epoch Timestamp</Label>
                           </div>
@@ -982,6 +1441,7 @@ export default function DownloadCenter() {
                             className="bg-accent/50 border-border rounded-xl h-10 text-xs focus:ring-filex-blue/50"
                             value={namingOptions.customName}
                             onChange={(e) => setNamingOptions({...namingOptions, customName: e.target.value})}
+                            disabled={namingOptions.keepOriginal}
                           />
                         </div>
                       </div>
@@ -990,11 +1450,25 @@ export default function DownloadCenter() {
                         <div className="space-y-4">
                           <div className="flex items-center gap-3">
                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                            <span className="text-xs font-medium">Auto-verify File Integrity</span>
+                            <span className="text-xs font-medium">Auto-verify File Integrity {securityOptions.verifyIntegrity ? "enabled" : "disabled"}</span>
                           </div>
                           <div className="flex items-center gap-3">
                             <Checkbox id="hash" checked={securityOptions.generateHash} onCheckedChange={(v) => setSecurityOptions({...securityOptions, generateHash: !!v})} className="rounded" />
                             <Label htmlFor="hash" className="text-xs font-medium cursor-pointer">Generate SHA-256 Hash Log</Label>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Compression Strategy</Label>
+                            <Select value={compression} onValueChange={setCompression}>
+                              <SelectTrigger className="bg-accent/50 border-border h-10 rounded-xl focus:ring-filex-blue/50">
+                                <SelectValue placeholder="Compression strategy" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-card border-border text-popover-foreground rounded-xl">
+                                <SelectItem value="fast">Fast batch export</SelectItem>
+                                <SelectItem value="smart">Smart balanced compression</SelectItem>
+                                <SelectItem value="max">Maximum size reduction</SelectItem>
+                                <SelectItem value="none">No compression</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div className="flex items-center gap-3 opacity-30 cursor-not-allowed grayscale">
                             <Lock className="w-3 h-3" />
@@ -1062,6 +1536,7 @@ export default function DownloadCenter() {
                         <div className="space-y-1">
                           <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Privacy Protection Score</p>
                           <p className="text-4xl font-black">{stats.score}<span className="text-xl text-muted-foreground">%</span></p>
+                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{selectedDeliverableCount} deliverable(s) selected · {WORKFLOW_PROFILES[workflowProfile].name}</p>
                         </div>
                         <div className="w-16 h-16 rounded-full bg-filex-gradient flex items-center justify-center shadow-lg shadow-filex-blue/20">
                           <ShieldCheck className="w-8 h-8 text-white" />
