@@ -44,15 +44,15 @@ const productCards = [
   },
   {
     title: "CorpDex",
-    status: "Reserved launch",
+    status: "Launch route ready",
     description:
-      "Reserved for the next enterprise launch, partner-facing module, or sector-specific surface without another domain reconfiguration.",
-    href: "#products",
-    cta: "Reserve the path",
+      "The next enterprise workspace under the KNIMEX portfolio, now prepared as a dedicated route for corporate workflows, launch material, and early customer conversations.",
+    href: "/corpdex",
+    cta: "Preview CorpDex",
     bullets: [
-      "Built for path-based expansion",
-      "Fits future product releases",
-      "Preserves one company identity",
+      "Dedicated path under the parent domain",
+      "Ready for launch messaging and demos",
+      "Keeps portfolio structure coherent",
     ],
     icon: Sparkles,
   },
@@ -142,8 +142,8 @@ const footerColumns = [
     links: [
       { label: "FileX", href: appPath("/") },
       { label: "BizDex", href: "/bizdex" },
-      { label: "CorpDex", href: "#products" },
-      { label: "All product paths", href: "#products" },
+      { label: "CorpDex", href: "/corpdex" },
+      { label: "GitApp.org", href: "https://gitapp.org" },
     ],
   },
   {
@@ -279,7 +279,8 @@ export default function KnimexParent() {
                 KNIMEX is now structured as the parent layer for products, publishing,
                 support, founder updates, and future launches. Each product can live on
                 its own child path while the root site stays coherent, premium, and ready
-                for enterprise buyers.
+                for enterprise buyers. Independent properties such as GitApp can keep
+                their own domain without weakening the parent architecture.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <SurfaceLink href="mailto:contact@knimex.com?subject=KNIMEX%20Enterprise%20Enquiry" primary>
@@ -288,13 +289,14 @@ export default function KnimexParent() {
                 </SurfaceLink>
                 <SurfaceLink href={appPath("/")}>Open FileX</SurfaceLink>
                 <SurfaceLink href="/bizdex">Open BizDex</SurfaceLink>
+                <SurfaceLink href="/corpdex">Preview CorpDex</SurfaceLink>
                 <SurfaceLink href="#support">Get support</SurfaceLink>
               </div>
               <dl className="mt-10 grid gap-3 border-t border-border pt-6 sm:grid-cols-3">
                 {[
                   ["/filex", "Metadata hygiene and document safety"],
                   ["/bizdex", "KYB, corporate intelligence, and OSINT"],
-                  ["/corpdex", "Reserved for the next commercial release"],
+                  ["/corpdex", "Enterprise launch route for the next product surface"],
                 ].map(([label, value]) => (
                   <div
                     key={label}
@@ -324,7 +326,7 @@ export default function KnimexParent() {
                   ],
                   [
                     "Expansion without rework",
-                    "New offerings can launch under clean child paths without rebuilding the company domain model again.",
+                    "New offerings can launch under clean child paths while standalone products can still live on their own domain when that model fits better.",
                   ],
                 ].map(([title, description]) => (
                   <div
@@ -367,7 +369,7 @@ export default function KnimexParent() {
               Each product can keep its own implementation and deployment while still feeling
               part of one KNIMEX system.
             </p>
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {productCards.map((card) => {
                 const Icon = card.icon;
                 return (
@@ -403,6 +405,38 @@ export default function KnimexParent() {
                   </div>
                 );
               })}
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-background text-filex-blue-deep dark:text-filex-cyan">
+                    <BriefcaseBusiness className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <span className="rounded-full border border-border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                    Standalone domain
+                  </span>
+                </div>
+                <h3 className="mt-5 text-xl font-semibold tracking-tight">GitApp</h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  Repository intelligence and technical due diligence that remains part of the
+                  broader KNIMEX portfolio while keeping its own external domain at gitapp.org.
+                </p>
+                <ul className="mt-4 space-y-2 pl-5 text-sm text-muted-foreground">
+                  {[
+                    "Own domain for direct sharing",
+                    "Independent acquisition surface",
+                    "Still linked from the parent portfolio",
+                  ].map((bullet) => (
+                    <li key={bullet} className="list-disc">
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-5">
+                  <SurfaceLink href="https://gitapp.org">
+                    Visit GitApp.org
+                    <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                  </SurfaceLink>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -511,11 +545,12 @@ export default function KnimexParent() {
               <SectionLabel>{column.title}</SectionLabel>
               <div className="mt-4 grid gap-3">
                 {column.links.map((link) =>
-                  link.href.startsWith("#") ? (
+                  link.href.startsWith("#") || link.href.startsWith("mailto:") || link.href.startsWith("http") ? (
                     <a
                       key={link.label}
                       href={link.href}
                       className="text-sm text-slate-300 transition-colors hover:text-white"
+                      {...(link.href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}
                     >
                       {link.label}
                     </a>

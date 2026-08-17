@@ -10,28 +10,37 @@ import CookieBanner from "@/components/CookieBanner";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const appBasePath = (process.env.NEXT_PUBLIC_APP_BASE_PATH ?? (process.env.NODE_ENV === "production" ? "/filex" : "")).replace(/\/$/, "");
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === "production" ? "https://knimex.com" : "http://localhost:3000")).replace(/\/$/, "");
-const publicAppUrl = `${siteUrl}${appBasePath}`;
+const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.NODE_ENV === "production" ? "https://knimex.com" : "http://localhost:3000")
+).replace(/\/$/, "");
 
 export const metadata: Metadata = {
-  metadataBase: new URL(publicAppUrl),
-  title: "FileX by KNIMEX - Beyond the File. Your Metadata, Your Control. ✨",
-  description: "Beyond the File. Your Metadata, Your Control. Remove sensitive metadata from your files without changing content. 100% client-side, zero tracking. 🎨",
-  keywords: "metadata editor, file metadata, EXIF editor, PDF metadata, audio tags, video metadata, FileX, KNIMEX, privacy tool, secure metadata removal",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "KNIMEX | Enterprise products, intelligence platforms, and digital infrastructure",
+    template: "%s | KNIMEX",
+  },
+  description:
+    "KNIMEX is the parent operating surface for enterprise products, intelligence platforms, support operations, and commercial engagement.",
+  keywords:
+    "KNIMEX, enterprise products, digital infrastructure, intelligence platforms, business software, commercial engagement",
   authors: [{ name: "KNIMEX Team" }],
   openGraph: {
-    title: "FileX by KNIMEX - Beyond the File ✨",
-    description: "Remove sensitive metadata from your files without changing content. 100% client-side, zero tracking.",
+    title: "KNIMEX | Enterprise products, intelligence platforms, and digital infrastructure",
+    description:
+      "KNIMEX is the parent operating surface for enterprise products, intelligence platforms, support operations, and commercial engagement.",
     type: "website",
-    images: ["/brand/social/og-image.png"],
+    url: siteUrl,
+    images: ["/brand/knimex/knimex-mark.svg"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "FileX - Your Metadata, Your Control",
-    description: "Remove sensitive metadata from your files without changing content.",
-    images: ["/brand/social/twitter-card.png"],
-  }
+    title: "KNIMEX | Enterprise products and digital infrastructure",
+    description:
+      "KNIMEX is the parent operating surface for enterprise products, intelligence platforms, support operations, and commercial engagement.",
+    images: ["/brand/knimex/knimex-mark.svg"],
+  },
 };
 
 export default function RootLayout({

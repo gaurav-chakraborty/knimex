@@ -5,6 +5,8 @@ const baseUrl = "https://knimex.com";
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
     { path: "/", changeFrequency: "daily" as const, priority: 1 },
+    { path: "/bizdex", changeFrequency: "weekly" as const, priority: 0.85 },
+    { path: "/corpdex", changeFrequency: "weekly" as const, priority: 0.7 },
     { path: "/filex", changeFrequency: "daily" as const, priority: 0.9 },
     { path: "/filex/pricing", changeFrequency: "monthly" as const, priority: 0.8 },
     { path: "/filex/login", changeFrequency: "monthly" as const, priority: 0.6 },
