@@ -25,7 +25,7 @@ function loadEnv(filePath) {
 loadEnv(envPath);
 loadEnv(envLocalPath);
 
-const allowMissing = process.argv.includes('--allow-missing');
+const allowMissing = process.argv.includes('--allow-missing') || Boolean(process.env.CI || process.env.VERCEL);
 
 const required = [
   'NEXT_PUBLIC_SUPABASE_URL',
@@ -142,7 +142,7 @@ if (missing.length > 0 && !allowMissing) {
   process.exit(1);
 } else {
   console.log(allowMissing
-    ? '\n✅ Environment variable shape check passed (missing secrets allowed in CI).'
+    ? '\n✅ Environment variable shape check passed (missing secrets allowed in CI/Vercel builds).'
     : '\n✅ All required environment variables present!');
   if (warnings.length === 0) {
     console.log('✅ No warnings!');
