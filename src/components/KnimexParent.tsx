@@ -501,8 +501,8 @@ export default function KnimexParent() {
               <span className="font-mono text-sm font-bold tracking-[0.2em]">KNIMEX</span>
             </a>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-300">
-              Parent home for products, intelligence platforms, publishing, support flows,
-              and future commercial launches under a single domain strategy.
+              Parent home for products, services, publishing, support flows, and
+              future commercial launches under a single domain strategy.
             </p>
           </div>
 
